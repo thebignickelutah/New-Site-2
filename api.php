@@ -183,10 +183,26 @@ function bn_private_owner(string $colOrPath): ?string {
     return preg_match('~^data/users/([\w.:-]{1,80})(/|$)~', $colOrPath, $m) ? $m[1] : null;
 }
 
+/** Documents only the admin may read (members never even receive them). */
+const BN_ADMIN_ONLY_DOCS = ['settings/fbshare'];
+
+/** Removes admin-only notes from documents everyone can read. */
+function bn_redact(string $path, object $d, ?array $me): object {
+    if ($me && $me['is_admin']) return $d;
+    if ($path === 'settings/antispam') {
+        // members' pages need the blocked IDs (to hide that content), never the admin's reasons
+        if (isset($d->blocked) && is_object($d->blocked)) foreach (get_object_vars($d->blocked) as $k => $v) {
+            if (is_object($v)) { unset($v->why); $d->blocked->$k = $v; }
+        }
+    }
+    return $d;
+}
+
 function bn_can(string $op, string $path, ?array $me): bool {
     $p = bn_split($path);
     if (!$p) return false;
     [$col, $id] = $p;
+    if (in_array($path, BN_ADMIN_ONLY_DOCS, true) && !($me && $me['is_admin'])) return false;
     $owner = bn_private_owner($col);
     if ($owner !== null) return $me !== null && $owner === $me['id'] && ($op === 'read' || $me['is_admin'] || !bn_blocked($me['id']));
     $base = BN_RULES[$col][$op] ?? null;
@@ -408,7 +424,7 @@ case 'doc':
     $me = bn_me();
     if (!bn_can('read', $path, $me)) bn_fail('permission_denied', 'You don\'t have access to that.', 403);
     $d = bn_get_doc($path);
-    bn_json(['exists' => $d !== null, 'data' => $d ?? new stdClass()]);
+    bn_json(['exists' => $d !== null, 'data' => $d === null ? new stdClass() : bn_redact($path, $d, $me)]);
 
 case 'col':
     $col = (string) ($_GET['path'] ?? '');
@@ -420,7 +436,7 @@ case 'col':
     foreach ($st as $row) {
         if (!bn_can('read', $row['path'], $me)) continue;
         $d = json_decode((string) $row['data'], false);
-        $docs[] = ['id' => bn_split($row['path'])[1], 'data' => is_object($d) ? $d : new stdClass()];
+        $docs[] = ['id' => bn_split($row['path'])[1], 'data' => is_object($d) ? bn_redact($row['path'], $d, $me) : new stdClass()];
     }
     bn_json(['docs' => $docs]);
 

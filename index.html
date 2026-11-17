@@ -22,6 +22,7 @@
   function call(route, opts) {
     opts = opts || {};
     var url = API + "?r=" + encodeURIComponent(route) + (opts.query ? "&" + opts.query : "");
+    if (!opts.method || opts.method === "GET") url += "&_=" + Date.now(); // never let a server cache answer for a signed-in member
     var init = { method: opts.method || "GET", credentials: "same-origin", cache: "no-store", headers: { "X-BN": "1" } };
     if (opts.body !== undefined) {
       if (opts.body instanceof FormData) init.body = opts.body;
@@ -2544,7 +2545,7 @@ const byId=id=>LISTINGS.concat(MINE,MEMBERL).find(l=>l.id===+id);
 // restore bids
 const bids=store.get("bids",{});Object.entries(bids).forEach(([id,v])=>{const l=byId(id);if(l&&v>l.price){l.price=v;l.bids++;l.mybid=v}});
 
-let _prmAdm=null;function ftrAdminSync(){const fa=document.getElementById("ftrAdmin");if(fa)fa.hidden=!ADS.admin;if(_prmAdm!==!!ADS.admin){_prmAdm=!!ADS.admin;if((location.hash||"").slice(1)==="promos"&&typeof route==="function")setTimeout(()=>{route._keep=true;route()},0)}if(typeof heroEditTag==="function")try{heroEditTag()}catch(e){}}
+let _prmAdm=null;function ftrAdminSync(){const fa=document.getElementById("ftrAdmin");if(fa)fa.hidden=!ADS.admin;const _ak=ADS.mode+"|"+!!ADS.admin;if(ftrAdminSync._k!==_ak){ftrAdminSync._k=_ak;if(typeof ADMIN_VIEWS!=="undefined"&&ADMIN_VIEWS.has((location.hash||"").slice(1).split("--")[0])&&typeof route==="function")setTimeout(()=>route(),0)}if(_prmAdm!==!!ADS.admin){_prmAdm=!!ADS.admin;if((location.hash||"").slice(1)==="promos"&&typeof route==="function")setTimeout(()=>{route._keep=true;route()},0)}if(typeof heroEditTag==="function")try{heroEditTag()}catch(e){}}
 function updateBadges(){ftrAdminSync();$("#savedCount").textContent=SAVED.size||"";if(typeof cartBadge==="function")cartBadge()}
 
 /* ---------- toast ---------- */
@@ -3583,7 +3584,18 @@ function vDash(){
   const tabs=[["overview","chart","Overview"],["listings","list","My listings"],["auctions","gavel","Auctions & bids"],["saved","heart","Saved"],["messages","mail","Messages"],["purchases","cart","Purchases"],["sales","cash","Sales & payouts"],["plans","star","Featured & plans"],["posts","news","My blog posts"],["profile","user","Profile & contact"],["settings","gear","Account settings"]];
   let body="";
   const unread=MSGS.filter(m=>m.unread).length;
-  if(dtab==="overview"){
+  if(dtab==="overview"&&window.BN_AUTH&&window.BN_ME){
+    const unread=typeof dmConvos==="function"?dmConvos().reduce((t,c)=>t+(c.unread||0),0):0,hr=new Date().getHours(),hi=hr<12?"Good morning":hr<17?"Good afternoon":"Good evening",first=String(window.BN_ME.name||"").split(" ")[0]||"there",watch=MINE.reduce((a,m)=>a+(m.watch||0),0);
+    body=`<div class="dash-head"><h2>${hi}, ${esc(first)}</h2><button class="btn btn-sell" data-post>${ico("plus")}Sell</button></div><div class="dash-duo">${lvlCard()}${rwdCard()}</div>
+    <div class="kpis"><div class="kpi"><span>Active listings</span><b>${act.length}</b><small class="mono" style="color:var(--muted)">${MINE.length} total</small></div>
+      <div class="kpi"><span>Watchers</span><b>${watch}</b><small class="mono" style="color:var(--muted)">people saving your items</small></div>
+      <div class="kpi"><span>Messages</span><b>${unread}</b><small class="mono" style="color:var(--muted)">unread</small></div>
+      <div class="kpi"><span>Saved</span><b>${SAVED.size}</b><small class="mono" style="color:var(--muted)">items you're watching</small></div></div>
+    <div class="panel"><h3>Next steps</h3>
+      ${MINE.length?`<div class="msg" data-tab="listings">${ico("list")}<div><b>Manage your listings</b><p>Edit prices, add photos or mark items sold.</p></div></div>`:`<div class="msg" data-post>${ico("plus")}<div><b>Post your first listing</b><p>It's free. Add a few photos and we'll share it to the Social feed and Facebook for you.</p></div></div>`}
+      ${unread?`<div class="msg" data-tab="messages">${ico("mail")}<div><b>${unread} unread message${unread>1?"s":""}</b><p>Buyers who hear back fast are more likely to buy.</p></div></div>`:""}
+      <div class="msg" data-tab="profile">${ico("user")}<div><b>Finish your profile</b><p>A photo and your town help buyers trust you.</p></div></div></div>`}
+  else if(dtab==="overview"){
     const v=[22,30,26,41,38,52,47,44,60,58,71,66,62,80,77,74,90,85,96,88,104,99,118,110,122,131,126,140,152,147];
     body=`<div class="dash-head"><h2>Good evening, Jordan</h2><button class="btn btn-sell" data-post>${ico("plus")}Sell</button></div><div class="dash-duo">${lvlCard()}${rwdCard()}</div>
     <div class="kpis"><div class="kpi"><span>Active listings</span><b>${act.length}</b><small class="mono" style="color:var(--muted)">${MINE.length} total</small></div>
@@ -3649,7 +3661,7 @@ function vDash(){
       <div id="closeConfirm" class="alert" style="margin-top:14px;border-color:var(--bad)" hidden><div style="flex:1"><b>Close your account?</b><p style="margin:4px 0 10px;color:var(--muted)">Your listings come down and your messages are deleted. This can't be undone.</p><div style="display:flex;gap:8px"><button type="button" class="btn btn-danger btn-sm" data-closeyes>Yes, close account</button><button type="button" class="btn btn-ghost btn-sm" data-closeno>Keep my account</button></div></div></div>
     </form>${secPanel()}`;
   }
-  return `<div class="wrap dash"><div class="dash-top"><div class="crumbs"><a href="#home">Home</a> / Dashboard</div><h1>My Dashboard</h1><p>Sample account with example listings, messages and sales.</p></div><nav class="side" aria-label="Dashboard"><div class="user"><div class="avatar">JA</div><div><b>Jordan Avery</b><div class="meta">Member since 2023 \u00B7 \u2605 4.9</div><div style="margin-top:4px">${lvlBadge("You",{sm:1})}</div></div></div>
+  return `<div class="wrap dash"><div class="dash-top"><div class="crumbs"><a href="#home">Home</a> / Dashboard</div><h1>My Dashboard</h1><p>${window.BN_ME?"Your listings, messages and account in one place.":"Sample account with example listings, messages and sales."}</p></div><nav class="side" aria-label="Dashboard"><div class="user"><div class="avatar">${window.BN_ME?esc(String(window.BN_ME.name||"?").split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase()):"JA"}</div><div><b>${window.BN_ME?esc(window.BN_ME.name||"Member"):"Jordan Avery"}</b><div class="meta">${window.BN_ME?"Big Nickel member":"Member since 2023 \u00B7 \u2605 4.9"}</div><div style="margin-top:4px">${lvlBadge("You",{sm:1})}</div></div></div>
     ${tabs.map(t=>`<button class="${dtab===t[0]?"on":""}" data-tab="${t[0]}">${ico(t[1])}${t[2]}${t[0]==="messages"&&unread?` <span class="pill info" style="margin-left:auto;padding:0 7px">${unread}</span>`:""}</button>`).join("")}</nav>
     <div style="min-width:0">${body}</div></div>`;
 }
@@ -5496,6 +5508,7 @@ function route(){
   else if(v==="weather"){app.innerHTML=vWeather();startWx();startRadar()}
   else if(v==="search")app.innerHTML=vSearch(lastQ.q,lastQ.cat);
   else if(v==="advertise"){app.innerHTML=vAdvertise();fillMyOrders()}
+  else if(ADMIN_VIEWS.has(v)&&!ADS.admin)app.innerHTML=ADS.mode==="loading"?`<div class="wrap" style="padding:80px 16px;text-align:center"><p class="meta">Checking access\u2026</p></div>`:`<div class="wrap" style="padding:80px 16px;text-align:center;max-width:520px">${ico("lock","i","width:34px;height:34px")}<h1 style="margin:14px 0 8px">Admins only</h1><p class="meta" style="margin:0 0 20px">This page is for The Big Nickel site admin.${window.BN_ME?"":" If that's you, sign in first."}</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><a class="btn btn-dark" href="#home">Back to home</a>${window.BN_ME?"":`<button class="btn btn-ghost" data-signin>Sign in</button>`}</div></div>`;
   else if(ADMIN_VIEWS.has(v)&&ADS.admin&&!secUnlocked())app.innerHTML=vSecLock();
   else if(v==="admin-ads")app.innerHTML=vAdminAds();
   else if(v==="admin-users")app.innerHTML=vAdminUsers();
