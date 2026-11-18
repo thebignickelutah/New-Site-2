@@ -23,8 +23,36 @@ function bn_protect(): void {
     if (!defined('BN_SINGLE')) return;
     $r = __DIR__ . '/.htaccess';
     $cur = is_file($r) ? (string) @file_get_contents($r) : '';
-    if (str_contains($cur, '# BN-PROTECT')) return;
-    $block = "\n# BN-PROTECT (added by The Big Nickel)\nDirectoryIndex index.html\nAddDefaultCharset UTF-8\nOptions -Indexes\n<FilesMatch \"^\\.|\\.(env|ini|log|sql|sqlite|bak)$|^config\\.local\\.php$\">\n  Require all denied\n</FilesMatch>\n<IfModule mod_headers.c>\n  <FilesMatch \"\\.html$\">\n    Header set Cache-Control \"no-cache\"\n  </FilesMatch>\n  <FilesMatch \"^api\\.php$\">\n    Header set Cache-Control \"no-store, private\"\n  </FilesMatch>\n</IfModule>\n";
+    if (str_contains($cur, '# BN-PROTECT v2')) return;
+    // drop an older version of our block (it always sat at the end of the file)
+    $at = strpos($cur, "\n# BN-PROTECT");
+    if ($at !== false) $cur = substr($cur, 0, $at);
+    $block = <<<'HT'
+
+# BN-PROTECT v2 (added by The Big Nickel)
+DirectoryIndex index.html
+AddDefaultCharset UTF-8
+Options -Indexes
+# never serve hidden, settings, log or backup files
+<FilesMatch "^\.|\.(env|ini|log|sql|sqlite|bak|md|json|lock|yml|yaml|dist)$|^(config\.local\.php|artisan|composer\..*)$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), payment=(self), geolocation=(self)"
+  Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com"
+  Header unset X-Powered-By
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "^api\.php$">
+    Header set Cache-Control "no-store, private"
+  </FilesMatch>
+</IfModule>
+# /BN-PROTECT
+HT;
     @file_put_contents($r, $cur . $block);
 }
 
@@ -75,8 +103,10 @@ function bn_is_sqlite(PDO $db): bool { return $db->getAttribute(PDO::ATTR_DRIVER
 
 /** Creates the tables the first time the backend runs (no command line needed on Cloudways). */
 function bn_schema(PDO $db): void {
-    $flag = sys_get_temp_dir() . '/bn-schema-v1-' . md5((string) json_encode(bn_config()['DB_DATABASE'] ?? bn_config()['BN_SQLITE'] ?? ''));
-    if (is_file($flag)) return;
+    $flag = sys_get_temp_dir() . '/bn-schema-v2-' . md5((string) json_encode(bn_config()['DB_DATABASE'] ?? bn_config()['BN_SQLITE'] ?? ''));
+    if (is_file($flag)) {
+        try { $db->query('SELECT 1 FROM bn_secrets LIMIT 1'); return; } catch (PDOException $e) { /* tables missing: create them */ }
+    }
     $sqlite = bn_is_sqlite($db);
     $text = $sqlite ? 'TEXT' : 'LONGTEXT';
     $engine = $sqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin';
@@ -85,6 +115,9 @@ function bn_schema(PDO $db): void {
         "CREATE TABLE IF NOT EXISTS bn_users (id VARCHAR(40) NOT NULL PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, name VARCHAR(80) NOT NULL, pass VARCHAR(255) NOT NULL, is_admin SMALLINT NOT NULL DEFAULT 0, created BIGINT NOT NULL)$engine",
         "CREATE TABLE IF NOT EXISTS bn_resets (token_hash CHAR(64) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, expires BIGINT NOT NULL)$engine",
         "CREATE TABLE IF NOT EXISTS bn_attempts (k VARCHAR(255) NOT NULL, at BIGINT NOT NULL)$engine",
+        "CREATE TABLE IF NOT EXISTS bn_totp (user_id VARCHAR(40) NOT NULL PRIMARY KEY, secret VARCHAR(64) NOT NULL, enabled SMALLINT NOT NULL DEFAULT 0, last_step BIGINT NOT NULL DEFAULT 0, recovery TEXT)$engine",
+        "CREATE TABLE IF NOT EXISTS bn_phones (phone VARCHAR(20) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, created BIGINT NOT NULL)$engine",
+        "CREATE TABLE IF NOT EXISTS bn_secrets (k VARCHAR(60) NOT NULL PRIMARY KEY, v TEXT)$engine",
         "CREATE TABLE IF NOT EXISTS bn_assets (id VARCHAR(40) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, file VARCHAR(255) NOT NULL, mime VARCHAR(100) NOT NULL, size BIGINT NOT NULL, created BIGINT NOT NULL)$engine",
     ];
     foreach ($stmts as $s) $db->exec($s);
@@ -261,7 +294,21 @@ function bn_throttle(string $key, int $max, int $windowSec): void {
     $db->prepare('INSERT INTO bn_attempts (k, at) VALUES (?, ?)')->execute([$key, $now]);
 }
 
-function bn_ip(): string { return substr((string) ($_SERVER['REMOTE_ADDR'] ?? '0'), 0, 64); }
+/**
+ * The visitor's address. On Cloudways requests pass through nginx and Varnish first, so the
+ * direct address can be the server itself; then the address nginx recorded is used instead.
+ */
+function bn_ip(): string {
+    $ra = (string) ($_SERVER['REMOTE_ADDR'] ?? '0');
+    $pub = fn($ip) => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+    if (!$pub($ra)) {
+        $real = trim((string) ($_SERVER['HTTP_X_REAL_IP'] ?? ''));
+        if ($pub($real)) return $real;
+        // rightmost public entry = the one added by our own proxy, not one a visitor typed
+        foreach (array_reverse(array_map('trim', explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')))) as $ip) if ($pub($ip)) return $ip;
+    }
+    return substr($ra, 0, 64);
+}
 
 function bn_put_doc(string $path, array|object $data): int {
     $db = bn_db();
@@ -296,6 +343,136 @@ function bn_body_data(): mixed {
 
 function bn_new_id(string $prefix): string { return $prefix . bin2hex(random_bytes(10)); }
 
+
+/* ---------- private settings (never sent to any browser) ---------- */
+function bn_secret(string $k): string {
+    $st = bn_db()->prepare('SELECT v FROM bn_secrets WHERE k = ?');
+    $st->execute([$k]);
+    return (string) ($st->fetchColumn() ?: '');
+}
+function bn_secret_set(string $k, string $v): void {
+    $db = bn_db();
+    $db->prepare('DELETE FROM bn_secrets WHERE k = ?')->execute([$k]);
+    $db->prepare('INSERT INTO bn_secrets (k, v) VALUES (?, ?)')->execute([$k, $v]);
+}
+
+/* ---------- two-step sign-in (authenticator app codes, RFC 6238) ---------- */
+function bn_b32_encode(string $bin): string {
+    $a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; $bits = ''; $out = '';
+    foreach (str_split($bin) as $c) $bits .= str_pad(decbin(ord($c)), 8, '0', STR_PAD_LEFT);
+    foreach (str_split($bits, 5) as $chunk) $out .= $a[bindec(str_pad($chunk, 5, '0'))];
+    return $out;
+}
+function bn_b32_decode(string $s): string {
+    $a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; $bits = ''; $out = '';
+    foreach (str_split(strtoupper(preg_replace('/[^A-Za-z2-7]/', '', $s))) as $c) $bits .= str_pad(decbin(strpos($a, $c)), 5, '0', STR_PAD_LEFT);
+    foreach (str_split($bits, 8) as $byte) if (strlen($byte) === 8) $out .= chr(bindec($byte));
+    return $out;
+}
+function bn_totp_at(string $secret, int $step): string {
+    $h = hash_hmac('sha1', pack('J', $step), bn_b32_decode($secret), true);
+    $o = ord($h[19]) & 0xf;
+    $n = ((ord($h[$o]) & 0x7f) << 24) | (ord($h[$o + 1]) << 16) | (ord($h[$o + 2]) << 8) | ord($h[$o + 3]);
+    return str_pad((string) ($n % 1000000), 6, '0', STR_PAD_LEFT);
+}
+function bn_mfa_row(string $uid): ?array {
+    $st = bn_db()->prepare('SELECT * FROM bn_totp WHERE user_id = ?');
+    $st->execute([$uid]);
+    return $st->fetch() ?: null;
+}
+function bn_mfa_on(string $uid): bool { $r = bn_mfa_row($uid); return $r !== null && (int) $r['enabled'] === 1; }
+/** Checks an app code (each code works once) or a one-time recovery code. */
+function bn_mfa_check(string $uid, string $code, bool $allowPendingSecret = false): bool {
+    $r = bn_mfa_row($uid);
+    if (!$r || (!$allowPendingSecret && (int) $r['enabled'] !== 1)) return false;
+    $code = strtoupper(preg_replace('/[\s-]+/', '', $code));
+    if (preg_match('/^\d{6}$/', $code)) {
+        $now = intdiv(time(), 30);
+        foreach ([0, -1, 1] as $d) {
+            $step = $now + $d;
+            if ($step > (int) $r['last_step'] && hash_equals(bn_totp_at($r['secret'], $step), $code)) {
+                bn_db()->prepare('UPDATE bn_totp SET last_step = ? WHERE user_id = ?')->execute([$step, $uid]);
+                return true;
+            }
+        }
+        return false;
+    }
+    if (preg_match('/^[A-Z0-9]{10}$/', $code) && (int) $r['enabled'] === 1) {
+        $list = json_decode((string) $r['recovery'], true) ?: [];
+        $h = hash('sha256', $code);
+        $i = array_search($h, $list, true);
+        if ($i === false) return false;
+        array_splice($list, $i, 1);
+        bn_db()->prepare('UPDATE bn_totp SET recovery = ? WHERE user_id = ?')->execute([json_encode($list), $uid]);
+        return true;
+    }
+    return false;
+}
+/** Password was right: sign in now, or ask for the second step first. */
+function bn_login_finish(string $uid, array $extra = []): never {
+    bn_session();
+    session_regenerate_id(true);
+    unset($_SESSION['uid'], $_SESSION['mfa_uid'], $_SESSION['mfa_at']);
+    if (bn_mfa_on($uid)) {
+        $_SESSION['mfa_uid'] = $uid;
+        $_SESSION['mfa_at'] = time();
+        bn_json(['ok' => true, 'need_2fa' => true] + $extra);
+    }
+    $_SESSION['uid'] = $uid;
+    bn_json(['ok' => true] + $extra);
+}
+
+/* ---------- text-message codes for new sign-ups (Twilio Verify) ---------- */
+function bn_sms_ready(): bool {
+    if (getenv('BN_TEST_SMS') === '1') return bn_secret('sms_on') === '1';
+    return bn_secret('sms_on') === '1' && bn_secret('tw_sid') !== '' && bn_secret('tw_token') !== '' && bn_secret('tw_verify') !== '';
+}
+/** US and Canada mobile numbers only, as +1XXXXXXXXXX (keeps texting costs and fraud down). */
+function bn_phone_norm(string $raw): ?string {
+    $d = preg_replace('/\D+/', '', $raw);
+    if (strlen($d) === 11 && $d[0] === '1') $d = substr($d, 1);
+    if (!preg_match('/^[2-9]\d{2}[2-9]\d{6}$/', $d)) return null;
+    if (preg_match('/^(\d)\1{9}$/', $d) || substr($d, 3, 3) === '555') return null;
+    return '+1' . $d;
+}
+function bn_phone_mask(string $e164): string { return '(***) ***-' . substr($e164, -4); }
+/** Calls Twilio. Returns [httpStatus, decodedJson]. */
+function bn_twilio(string $method, string $path, array $params = [], array $cred = []): array {
+    $sid = $cred['sid'] ?? bn_secret('tw_sid');
+    $tok = $cred['token'] ?? bn_secret('tw_token');
+    $ch = curl_init('https://verify.twilio.com/v2/' . $path);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15, CURLOPT_USERPWD => $sid . ':' . $tok, CURLOPT_CUSTOMREQUEST => $method]);
+    if ($method === 'POST') curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    $body = curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return [$code, json_decode((string) $body, true) ?: []];
+}
+function bn_sms_send(string $phone): bool {
+    if (getenv('BN_TEST_SMS') === '1') return true;
+    [$c, $j] = bn_twilio('POST', 'Services/' . rawurlencode(bn_secret('tw_verify')) . '/Verifications', ['To' => $phone, 'Channel' => 'sms']);
+    if ($c >= 300) error_log('[bn] twilio send ' . $c . ' ' . ($j['message'] ?? ''));
+    return $c < 300 && ($j['status'] ?? '') === 'pending';
+}
+function bn_sms_check(string $phone, string $code): bool {
+    if (getenv('BN_TEST_SMS') === '1') return $code === '123456';
+    [$c, $j] = bn_twilio('POST', 'Services/' . rawurlencode(bn_secret('tw_verify')) . '/VerificationCheck', ['To' => $phone, 'Code' => $code]);
+    return $c < 300 && ($j['status'] ?? '') === 'approved';
+}
+
+/** Creates the member: login row, Admin -> Users record and a public profile with just the name. */
+function bn_create_account(string $name, string $email, string $hash, ?string $phone): string {
+    $db = bn_db();
+    $first = !(int) $db->query('SELECT COUNT(*) FROM bn_users WHERE is_admin = 1')->fetchColumn();
+    $id = bn_new_id('m');
+    $now = bn_now();
+    $db->prepare('INSERT INTO bn_users (id, email, name, pass, is_admin, created) VALUES (?, ?, ?, ?, ?, ?)')->execute([$id, $email, $name, $hash, $first ? 1 : 0, $now]);
+    if ($phone) $db->prepare('INSERT INTO bn_phones (phone, user_id, created) VALUES (?, ?, ?)')->execute([$phone, $id, $now]);
+    bn_put_doc('users/' . $id, ['name' => $name, 'email' => $email, 'joined' => gmdate('Y-m-d'), 'status' => 'Active', 'role' => $first ? 'Admin' : 'Member', 'trusted' => $first, 'listings' => 0, 'sales' => 0, 'rating' => 0, 'verified' => $phone ? ['email', 'phone'] : ['email'], 'phone' => $phone ? bn_phone_mask($phone) : '', 'last' => 'now']);
+    if (!bn_get_doc('profiles/' . $id)) bn_put_doc('profiles/' . $id, ['name' => $name]);
+    return $id;
+}
+
 /* ================= request handler ================= */
 
 set_exception_handler(function (Throwable $e) {
@@ -329,7 +506,10 @@ case 'health':
 /* ---------------- accounts ---------------- */
 case 'me':
     $me = bn_me();
-    bn_json(['me' => $me ? ['id' => $me['id'], 'name' => $me['name'], 'email' => $me['email'], 'admin' => $me['is_admin']] : null, 'now' => bn_now()]);
+    bn_session();
+    bn_json(['me' => $me ? ['id' => $me['id'], 'name' => $me['name'], 'email' => $me['email'], 'admin' => $me['is_admin'], 'mfa' => bn_mfa_on($me['id'])] : null,
+        'pending_2fa' => !$me && !empty($_SESSION['mfa_uid']) && time() - (int) ($_SESSION['mfa_at'] ?? 0) < 600,
+        'sms_signup' => bn_sms_ready(), 'now' => bn_now()]);
 
 case 'register':
     if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
@@ -341,22 +521,56 @@ case 'register':
     if (mb_strlen($name) < 2 || mb_strlen($name) > 60) bn_fail('invalid', 'Enter your name (2 to 60 letters).');
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 200) bn_fail('invalid', 'Enter a valid email address.');
     if (strlen($pass) < 8 || strlen($pass) > 200) bn_fail('invalid', 'Use a password with at least 8 characters.');
-    $db = bn_db();
-    $st = $db->prepare('SELECT 1 FROM bn_users WHERE email = ?');
+    $st = bn_db()->prepare('SELECT 1 FROM bn_users WHERE email = ?');
     $st->execute([$email]);
     if ($st->fetchColumn()) bn_fail('exists', 'There is already an account with that email. Try signing in instead.', 409);
-    $first = !(int) $db->query('SELECT COUNT(*) FROM bn_users WHERE is_admin = 1')->fetchColumn();
-    $id = bn_new_id('m');
-    $now = bn_now();
-    $db->prepare('INSERT INTO bn_users (id, email, name, pass, is_admin, created) VALUES (?, ?, ?, ?, ?, ?)')
-       ->execute([$id, $email, $name, password_hash($pass, PASSWORD_DEFAULT), $first ? 1 : 0, $now]);
-    // member record for Admin -> Users, and a public profile with just the name
-    bn_put_doc('users/' . $id, ['name' => $name, 'email' => $email, 'joined' => gmdate('Y-m-d'), 'status' => 'Active', 'role' => $first ? 'Admin' : 'Member', 'trusted' => $first, 'listings' => 0, 'sales' => 0, 'rating' => 0, 'verified' => ['email'], 'last' => 'now']);
-    if (!bn_get_doc('profiles/' . $id)) bn_put_doc('profiles/' . $id, ['name' => $name]);
+    $first = !(int) bn_db()->query('SELECT COUNT(*) FROM bn_users WHERE is_admin = 1')->fetchColumn();
+    // the very first account (the site owner) never needs a text code
+    if (!$first && bn_sms_ready()) {
+        $phone = bn_phone_norm((string) ($b['phone'] ?? ''));
+        if (!$phone) bn_fail('invalid_phone', 'Enter a US or Canadian mobile number, like 801-555-0123.');
+        $st = bn_db()->prepare('SELECT 1 FROM bn_phones WHERE phone = ?');
+        $st->execute([$phone]);
+        if ($st->fetchColumn()) bn_fail('phone_used', 'That phone number is already on another account. Try signing in instead.', 409);
+        bn_throttle('smsip:' . bn_ip(), 6, 86400);
+        bn_throttle('smsph:' . $phone, 4, 86400);
+        if (!bn_sms_send($phone)) bn_fail('sms_failed', 'We couldn\'t text that number. Check it and try again.', 502);
+        bn_session();
+        $_SESSION['reg'] = ['name' => $name, 'email' => $email, 'hash' => password_hash($pass, PASSWORD_DEFAULT), 'phone' => $phone, 'at' => time(), 'sent' => time(), 'tries' => 0, 'sends' => 1];
+        bn_json(['ok' => true, 'need_sms' => true, 'phone' => bn_phone_mask($phone)]);
+    }
+    $id = bn_create_account($name, $email, password_hash($pass, PASSWORD_DEFAULT), null);
+    bn_login_finish($id, ['admin' => $first]);
+
+case 'register_verify':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
     bn_session();
-    session_regenerate_id(true);
-    $_SESSION['uid'] = $id;
-    bn_json(['ok' => true, 'admin' => $first]);
+    $r = $_SESSION['reg'] ?? null;
+    if (!$r || time() - (int) $r['at'] > 1800) bn_fail('expired', 'That sign-up timed out. Please start again.', 400);
+    if ((int) $r['tries'] >= 6) { unset($_SESSION['reg']); bn_fail('expired', 'Too many wrong codes. Please start again.', 400); }
+    $_SESSION['reg']['tries'] = (int) $r['tries'] + 1;
+    $code = preg_replace('/\D+/', '', (string) (bn_body()['code'] ?? ''));
+    if (strlen($code) < 4 || !bn_sms_check($r['phone'], $code)) bn_fail('bad_code', 'That code isn\'t right. Check the text and try again.', 400);
+    unset($_SESSION['reg']);
+    $st = bn_db()->prepare('SELECT 1 FROM bn_users WHERE email = ?');
+    $st->execute([$r['email']]);
+    if ($st->fetchColumn()) bn_fail('exists', 'There is already an account with that email. Try signing in instead.', 409);
+    $id = bn_create_account($r['name'], $r['email'], $r['hash'], $r['phone']);
+    bn_login_finish($id, ['admin' => false]);
+
+case 'register_resend':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    bn_session();
+    $r = $_SESSION['reg'] ?? null;
+    if (!$r || time() - (int) $r['at'] > 1800) bn_fail('expired', 'That sign-up timed out. Please start again.', 400);
+    if (time() - (int) $r['sent'] < 60) bn_fail('wait', 'Please wait a minute before asking for another code.', 429);
+    if ((int) $r['sends'] >= 3) bn_fail('wait', 'We\'ve sent a few codes already. Please start again later.', 429);
+    bn_throttle('smsip:' . bn_ip(), 6, 86400);
+    bn_throttle('smsph:' . $r['phone'], 4, 86400);
+    if (!bn_sms_send($r['phone'])) bn_fail('sms_failed', 'We couldn\'t send a new code. Try again in a minute.', 502);
+    $_SESSION['reg']['sent'] = time();
+    $_SESSION['reg']['sends'] = (int) $r['sends'] + 1;
+    bn_json(['ok' => true]);
 
 case 'login':
     if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
@@ -370,9 +584,19 @@ case 'login':
     if (!$u || !password_verify((string) ($b['password'] ?? ''), $u['pass'])) bn_fail('bad_login', 'That email and password don\'t match.', 401);
     if (in_array(bn_member_status($u['id']), ['Deactivated', 'Banned'], true)) bn_fail('blocked', 'This account is turned off. Contact the site team for help.', 403);
     if (password_needs_rehash($u['pass'], PASSWORD_DEFAULT)) bn_db()->prepare('UPDATE bn_users SET pass = ? WHERE id = ?')->execute([password_hash((string) $b['password'], PASSWORD_DEFAULT), $u['id']]);
+    bn_login_finish($u['id']);
+
+case 'login_2fa':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
     bn_session();
+    $uid = (string) ($_SESSION['mfa_uid'] ?? '');
+    if ($uid === '' || time() - (int) ($_SESSION['mfa_at'] ?? 0) > 600) bn_fail('expired', 'That took too long. Please sign in again.', 400);
+    bn_throttle('mfa:' . $uid, 8, 900);
+    bn_throttle('mfaip:' . bn_ip(), 20, 900);
+    if (!bn_mfa_check($uid, (string) (bn_body()['code'] ?? ''))) bn_fail('bad_code', 'That code isn\'t right. Use the newest code in your authenticator app.', 400);
     session_regenerate_id(true);
-    $_SESSION['uid'] = $u['id'];
+    unset($_SESSION['mfa_uid'], $_SESSION['mfa_at']);
+    $_SESSION['uid'] = $uid;
     bn_json(['ok' => true]);
 
 case 'logout':
@@ -413,10 +637,71 @@ case 'reset':
     if (!$uid) bn_fail('expired', 'That reset link has expired. Ask for a new one.', 400);
     $db->prepare('UPDATE bn_users SET pass = ? WHERE id = ?')->execute([password_hash($pass, PASSWORD_DEFAULT), $uid]);
     $db->prepare('DELETE FROM bn_resets WHERE user_id = ?')->execute([$uid]);
-    bn_session();
-    session_regenerate_id(true);
-    $_SESSION['uid'] = $uid;
+    bn_login_finish((string) $uid);
+
+/* ---------------- two-step sign-in settings (for the signed-in member) ---------------- */
+case 'mfa_setup':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    $me = bn_me();
+    if (!$me) bn_fail('unauthenticated', 'Please sign in first.', 401);
+    if (bn_mfa_on($me['id'])) bn_fail('already', 'Two-step sign-in is already on.', 409);
+    $secret = bn_b32_encode(random_bytes(20));
+    bn_db()->prepare('DELETE FROM bn_totp WHERE user_id = ?')->execute([$me['id']]);
+    bn_db()->prepare('INSERT INTO bn_totp (user_id, secret, enabled, last_step, recovery) VALUES (?, ?, 0, 0, ?)')->execute([$me['id'], $secret, '[]']);
+    $label = rawurlencode('The Big Nickel:' . $me['email']);
+    bn_json(['secret' => $secret, 'uri' => "otpauth://totp/$label?secret=$secret&issuer=" . rawurlencode('The Big Nickel') . '&digits=6&period=30']);
+
+case 'mfa_enable':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    $me = bn_me();
+    if (!$me) bn_fail('unauthenticated', 'Please sign in first.', 401);
+    bn_throttle('mfaset:' . $me['id'], 10, 900);
+    if (bn_mfa_on($me['id'])) bn_fail('already', 'Two-step sign-in is already on.', 409);
+    if (!bn_mfa_check($me['id'], (string) (bn_body()['code'] ?? ''), true)) bn_fail('bad_code', 'That code isn\'t right. Type the 6 numbers your app shows right now.', 400);
+    $codes = [];
+    for ($i = 0; $i < 10; $i++) $codes[] = substr(strtoupper(bn_b32_encode(random_bytes(10))), 0, 10);
+    bn_db()->prepare('UPDATE bn_totp SET enabled = 1, recovery = ? WHERE user_id = ?')->execute([json_encode(array_map(fn($c) => hash('sha256', $c), $codes)), $me['id']]);
+    bn_json(['ok' => true, 'recovery' => $codes]);
+
+case 'mfa_disable':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    $me = bn_me();
+    if (!$me) bn_fail('unauthenticated', 'Please sign in first.', 401);
+    bn_throttle('mfaset:' . $me['id'], 10, 900);
+    $b = bn_body();
+    $st = bn_db()->prepare('SELECT pass FROM bn_users WHERE id = ?');
+    $st->execute([$me['id']]);
+    if (!password_verify((string) ($b['password'] ?? ''), (string) $st->fetchColumn())) bn_fail('bad_login', 'That password isn\'t right.', 400);
+    if (!bn_mfa_check($me['id'], (string) ($b['code'] ?? ''))) bn_fail('bad_code', 'That code isn\'t right.', 400);
+    bn_db()->prepare('DELETE FROM bn_totp WHERE user_id = ?')->execute([$me['id']]);
     bn_json(['ok' => true]);
+
+/* ---------------- text-message sign-up settings (admin only; keys never leave the server) ---------------- */
+case 'sms_settings':
+    $me = bn_me();
+    if (!$me || !$me['is_admin']) bn_fail('permission_denied', 'Admins only.', 403);
+    if ($method === 'POST') {
+        $b = bn_body();
+        $sid = trim((string) ($b['sid'] ?? ''));
+        $tok = trim((string) ($b['token'] ?? ''));
+        $ver = trim((string) ($b['verify'] ?? ''));
+        if ($sid !== '' && !preg_match('/^AC[0-9a-f]{32}$/i', $sid)) bn_fail('invalid', 'The Account SID starts with AC followed by 32 letters and numbers.');
+        if ($ver !== '' && !preg_match('/^VA[0-9a-f]{32}$/i', $ver)) bn_fail('invalid', 'The Verify Service SID starts with VA followed by 32 letters and numbers.');
+        if ($tok !== '' && !preg_match('/^[0-9a-f]{32}$/i', $tok)) bn_fail('invalid', 'The Auth Token is 32 letters and numbers.');
+        $nSid = $sid ?: bn_secret('tw_sid'); $nTok = $tok ?: bn_secret('tw_token'); $nVer = $ver ?: bn_secret('tw_verify');
+        $on = !empty($b['on']);
+        if ($on && getenv('BN_TEST_SMS') !== '1') {
+            if (!$nSid || !$nTok || !$nVer) bn_fail('invalid', 'Fill in all three Twilio details before turning this on.');
+            [$c] = bn_twilio('GET', 'Services/' . rawurlencode($nVer), [], ['sid' => $nSid, 'token' => $nTok]);
+            if ($c !== 200) bn_fail('twilio', 'Twilio didn\'t accept those details. Check them and try again.', 400);
+        }
+        if ($sid !== '') bn_secret_set('tw_sid', $sid);
+        if ($tok !== '') bn_secret_set('tw_token', $tok);
+        if ($ver !== '') bn_secret_set('tw_verify', $ver);
+        bn_secret_set('sms_on', $on ? '1' : '0');
+    }
+    $s2 = bn_secret('tw_sid');
+    bn_json(['on' => bn_secret('sms_on') === '1', 'sid' => $s2 ? substr($s2, 0, 6) . '…' . substr($s2, -4) : '', 'token_set' => bn_secret('tw_token') !== '', 'verify' => bn_secret('tw_verify') ? '…' . substr(bn_secret('tw_verify'), -4) : '']);
 
 /* ---------------- stored data (same shape as the preview's database) ---------------- */
 case 'doc':
