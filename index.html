@@ -1301,7 +1301,8 @@ module.exports = QRCode;
   }
 
   /* ---------------- who is signed in ---------------- */
-  var ME = null, SINCE = 0, SMS = false, PEND = false;
+  var ME = null, SINCE = 0, SMS = false, PEND = false, OWNER = /^#owner-reset$/.test(location.hash);
+  window.addEventListener("hashchange", function () { if (/^#owner-reset$/.test(location.hash)) ownerReset(); });
   var meReady = call("me").then(function (j) { ME = j.me; SMS = !!j.sms_signup; PEND = !!j.pending_2fa; SINCE = j.now || Date.now(); window.BN_ME = ME; return ME; })
     .catch(function () { ME = null; window.BN_ME = null; return null; });
   window.BN_READY = meReady;
@@ -1590,15 +1591,47 @@ module.exports = QRCode;
       });
     }, function () {});
   }
+  function ownerReset() {
+    var b = panel('<h2>Owner recovery</h2><p class="sub">Sets a new email and password for the site owner\'s admin account. You need the owner key you put in <b>owner-key.php</b>.</p>' +
+      '<form data-p="owner"><label for="bnaK">Owner key</label><input id="bnaK" name="key" type="password" autocomplete="off" required minlength="16">' +
+      '<label for="bnaE">Admin email</label><input id="bnaE" name="email" type="email" autocomplete="username" required>' +
+      '<label for="bnaP">New password</label><input id="bnaP" name="password" type="password" autocomplete="new-password" required minlength="10" placeholder="At least 10 characters">' +
+      '<div class="bna-msg" hidden></div><button class="go" type="submit">Reset admin login</button></form>' +
+      '<p class="fine">This also turns off two-step sign-in for the admin so you can get back in. Turn it on again afterwards.</p>');
+    b.querySelector("form").addEventListener("submit", function (e) {
+      e.preventDefault(); var f = e.target, btn = f.querySelector(".go"); btn.disabled = true;
+      call("owner_reset", { method: "POST", body: { key: f.key.value, email: f.email.value.trim(), password: f.password.value } }).then(function (j) {
+        msg(b, "Done. You're signed in as admin." + (j.key_removed ? "" : " Now delete owner-key.php from GitHub and press Pull."), true);
+        try { history.replaceState(null, "", location.pathname + "#dashboard"); } catch (x) {}
+        setTimeout(function () { location.reload(); }, 2500);
+      }, function (x) { btn.disabled = false; msg(b, x.message); });
+    });
+  }
+  function cleanup() {
+    if (!ME || !ME.admin) return;
+    call("cleanup").then(function (j) {
+      if (!j.left.length) { var d = panel('<h2>Server cleanup <span class="badge on">Done</span></h2><p class="sub">There are no unused starter files on your server. Nothing to clean up.</p><button class="ghost" type="button" data-x>Close</button>'); return; }
+      var b = panel('<h2>Server cleanup</h2><p class="sub">Cloudways installed a starter app called Laravel next to your site. The Big Nickel doesn\'t use it, but its files can be opened by anyone, which shows what software your server runs. This removes them.</p>' +
+        '<p style="margin:0 0 6px;font-size:14px"><b>' + j.left.length + ' items to remove:</b></p><p class="fine" style="text-align:left;margin:0;word-break:break-word">' + j.left.map(esc).join(", ") + '</p>' +
+        '<p class="fine" style="text-align:left">Your site, members, listings, photos and database settings are not touched. This can\'t be undone, but nothing on The Big Nickel needs these files.</p>' +
+        '<div class="bna-msg" hidden></div><button class="go" type="button" data-go2>Remove unused files</button>');
+      b.querySelector("[data-go2]").addEventListener("click", function (e) {
+        e.target.disabled = true;
+        call("cleanup", { method: "POST", body: {} }).then(function (k) {
+          msg(b, k.left.length ? "Removed most files. " + k.left.length + " couldn't be removed: " + k.left.join(", ") : "Done. The unused files are gone.", !k.left.length);
+        }, function (x) { e.target.disabled = false; msg(b, x.message); });
+      });
+    }, function () {});
+  }
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms]");
+    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms],[data-bnclean]");
     if (!t) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if (t.matches("[data-bnsec]")) security(); else smsSettings();
+    if (t.matches("[data-bnsec]")) security(); else if (t.matches("[data-bnclean]")) cleanup(); else smsSettings();
   }, true);
 
   function signOut() { call("logout", { method: "POST" }).then(function () { location.reload(); }, function () { location.reload(); }); }
-  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings };
+  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings, cleanup: cleanup, ownerReset: ownerReset };
 
   /* signed-out visitors: account button, Sell and the dashboard ask them to sign in first */
   document.addEventListener("click", function (e) {
@@ -1615,6 +1648,7 @@ module.exports = QRCode;
     var m = /^#reset=([a-f0-9]{48})$/.exec(location.hash);
     if (m) open("reset", null, m[1]);
     else if (!ME && PEND) open("code2fa");
+    if (OWNER) ownerReset();
   });
 })();
 
@@ -4979,7 +5013,7 @@ function vDash(){
     <div class="panel"><h3>Needs your attention</h3>
       <div class="msg" data-tab="messages">${ico("mail")}<div><b>${unread} unread messages</b><p>Kyle H. made an offer on your Tacoma.</p></div></div>
       <div class="msg" data-tab="listings">${ico("eye")}<div><b>Thule roof box is paused</b><p>Paused ads don't show in search. Resume it when you're ready.</p></div></div>
-      <div class="msg" data-tab="auctions">${ico("gavel")}<div><b>Your snow blower auction ends in ${timeLeft(MINE.find(m=>m.id===904).ends-Date.now()).split(" ").slice(0,2).join(" ")}</b><p>12 bids, reserve met.</p></div></div></div>`;
+      ${(()=>{const sb=MINE.find(m=>m.id===904&&m.ends);return sb?`<div class="msg" data-tab="auctions">${ico("gavel")}<div><b>Your snow blower auction ends in ${timeLeft(sb.ends-Date.now()).split(" ").slice(0,2).join(" ")}</b><p>12 bids, reserve met.</p></div></div>`:""})()}</div>`;
   }
   if(dtab==="listings"){
     body=`<div class="dash-head"><div><h2>My listings</h2><a class="meta" href="#import" style="color:var(--fg);margin-right:12px">${ico("upload","i","width:14px;height:14px;vertical-align:-2px")} Bulk import inventory</a><a class="meta" href="#bump-info" style="color:var(--fg)">${ico("chart","i","width:14px;height:14px;vertical-align:-2px")} How bumping works</a></div><button class="btn btn-sell" data-post>${ico("plus")}Sell</button></div>
@@ -6103,7 +6137,7 @@ function acctMenuHTML(){
     ${it("#dashboard","chart","My Dashboard","overview")}
     ${grp("sell","tag","Buying &amp; selling",[it("#dashboard","list","My listings","listings"),it("#import","upload","Bulk import"),it("#dashboard","gavel","Auctions &amp; bids","auctions"),it("#dashboard","cart","Purchases","purchases",purch),it("#dashboard","cash","Sales &amp; payouts","sales"),it("#dashboard","star","Featured &amp; plans","plans")],purch)}
     ${grp("comm","user","Community",[it("#social","user","Clubs &amp; Groups"),it("#social--new","plus","Create a group"),it("#dashboard","news","My blog posts","posts")])}
-    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
+    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`,`<a href="#dashboard" data-bnclean role="menuitem">${ico("shield","i","width:18px;height:18px")}Server cleanup</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
     ${ADS.admin?grp("admin","shield","Admin",[it("#admin-approvals","shield","Approvals",null,apN),it("#admin-users","user","Users",null,upend),it("#admin-ads","folder","Ads",null,pend),it("#admin-inbox","mail","Inbox",null,inbox),it("#admin-posts","news","Blog posts",null,postsN),it("#admin-orders","cart","Shop orders",null,ordN),it("#admin-media","grid","Media"),it("#businesses","store","Businesses")],apN+upend+pend+inbox+ordN,"admin"):""}`;
 }
 function setAcct(open){const m=$("#acctMenu"),b=$("#acctBtn");if(!m)return;if(open)m.innerHTML=acctMenuHTML();m.hidden=!open;b.setAttribute("aria-expanded",open)}
