@@ -23,13 +23,13 @@ function bn_protect(): void {
     if (!defined('BN_SINGLE')) return;
     $r = __DIR__ . '/.htaccess';
     $cur = is_file($r) ? (string) @file_get_contents($r) : '';
-    if (str_contains($cur, '# BN-PROTECT v2')) return;
+    if (str_contains($cur, '# BN-PROTECT v3')) return;
     // drop an older version of our block (it always sat at the end of the file)
     $at = strpos($cur, "\n# BN-PROTECT");
     if ($at !== false) $cur = substr($cur, 0, $at);
     $block = <<<'HT'
 
-# BN-PROTECT v2 (added by The Big Nickel)
+# BN-PROTECT v3 (added by The Big Nickel)
 DirectoryIndex index.html
 AddDefaultCharset UTF-8
 Options -Indexes
@@ -50,6 +50,15 @@ Options -Indexes
   <FilesMatch "^api\.php$">
     Header set Cache-Control "no-store, private"
   </FilesMatch>
+</IfModule>
+# old links from the previous site (like /classifieds/15) open the new home page instead of an error
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteCond %{REQUEST_URI} !^/u/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ / [R=302,L]
 </IfModule>
 # /BN-PROTECT
 HT;
@@ -617,9 +626,9 @@ case 'forgot':
         $cfg = bn_config();
         $site = rtrim($cfg['BN_SITE_URL'] ?? ('https://' . ($_SERVER['HTTP_HOST'] ?? '')), '/');
         $link = $site . '/#reset=' . $token;
-        $from = $cfg['BN_MAIL_FROM'] ?? ('noreply@' . preg_replace('/^www\./', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost')));
+        $from = $cfg['BN_MAIL_FROM'] ?? 'service@thebignickel.biz';
         $body = "Hi {$u['name']},\n\nSomeone asked to reset the password for your Big Nickel account. If that was you, open this link within an hour:\n\n$link\n\nIf it wasn't you, ignore this email and your password stays the same.\n\nThe Big Nickel Classifieds";
-        if (function_exists('mail')) @mail($email, 'Reset your Big Nickel password', $body, "From: The Big Nickel <$from>\r\nContent-Type: text/plain; charset=UTF-8");
+        if (function_exists('mail')) @mail($email, 'Reset your Big Nickel password', $body, "From: The Big Nickel <$from>\r\nReply-To: $from\r\nContent-Type: text/plain; charset=UTF-8", '-f' . $from);
     }
     // same answer either way, so nobody can test which emails have accounts
     bn_json(['ok' => true]);
