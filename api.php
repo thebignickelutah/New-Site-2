@@ -23,18 +23,18 @@ function bn_protect(): void {
     if (!defined('BN_SINGLE')) return;
     $r = __DIR__ . '/.htaccess';
     $cur = is_file($r) ? (string) @file_get_contents($r) : '';
-    if (str_contains($cur, '# BN-PROTECT v3')) return;
+    if (str_contains($cur, '# BN-PROTECT v4')) return;
     // drop an older version of our block (it always sat at the end of the file)
     $at = strpos($cur, "\n# BN-PROTECT");
     if ($at !== false) $cur = substr($cur, 0, $at);
     $block = <<<'HT'
 
-# BN-PROTECT v3 (added by The Big Nickel)
+# BN-PROTECT v4 (added by The Big Nickel)
 DirectoryIndex index.html
 AddDefaultCharset UTF-8
 Options -Indexes
 # never serve hidden, settings, log or backup files
-<FilesMatch "^\.|\.(env|ini|log|sql|sqlite|bak|md|json|lock|yml|yaml|dist)$|^(config\.local\.php|artisan|composer\..*)$">
+<FilesMatch "^\.|\.(env|ini|log|sql|sqlite|bak|md|json|lock|yml|yaml|dist)$|^(config\.local\.php|owner-key\.php|artisan|composer\..*)$">
   Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>
@@ -482,6 +482,29 @@ function bn_create_account(string $name, string $email, string $hash, ?string $p
     return $id;
 }
 
+/* ---------- removing the unused Laravel starter app Cloudways installed next to the site ---------- */
+const BN_LARAVEL_LEFTOVERS = ['app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources', 'routes', 'storage', 'tests', 'vendor', 'node_modules',
+    'artisan', 'composer.json', 'composer.lock', 'package.json', 'package-lock.json', 'phpunit.xml', 'vite.config.js', 'postcss.config.js', 'tailwind.config.js',
+    'README.md', 'server.php', '.env.example', '.editorconfig', '.gitattributes', '.styleci.yml'];
+/** Only works in the 2-file setup (api.php sits in the web folder); never touches .env, the site, uploads or settings. */
+function bn_leftovers(): array {
+    if (!defined('BN_SINGLE')) return [];
+    $root = realpath(__DIR__);
+    // only when it really is a Laravel skeleton: artisan + composer.json naming laravel
+    $cj = @file_get_contents($root . '/composer.json');
+    if (!is_file($root . '/artisan') && !($cj && str_contains($cj, 'laravel'))) return [];
+    return array_values(array_filter(BN_LARAVEL_LEFTOVERS, fn($n) => file_exists($root . '/' . $n) || is_link($root . '/' . $n)));
+}
+function bn_rm(string $path, string $root): void {
+    if (is_link($path)) { @unlink($path); return; }
+    $real = realpath($path);
+    if ($real === false || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) return;
+    if (is_dir($real)) {
+        foreach (scandir($real) ?: [] as $e) if ($e !== '.' && $e !== '..') bn_rm($real . DIRECTORY_SEPARATOR . $e, $root);
+        @rmdir($real);
+    } else @unlink($real);
+}
+
 /* ================= request handler ================= */
 
 set_exception_handler(function (Throwable $e) {
@@ -497,6 +520,17 @@ if ($method !== 'GET') bn_require_same_site();
 switch ($route) {
 
 /* ---------------- setup check (safe to share: shows no secrets) ---------------- */
+case 'cleanup':
+    $me = bn_me();
+    if (!$me || !$me['is_admin']) bn_fail('permission_denied', 'Admins only.', 403);
+    if ($method === 'POST') {
+        bn_throttle('cleanup:' . $me['id'], 5, 3600);
+        $root = realpath(__DIR__);
+        foreach (bn_leftovers() as $n) bn_rm($root . '/' . $n, $root);
+        error_log('[bn] cleanup by ' . $me['id']);
+    }
+    bn_json(['left' => bn_leftovers(), 'single' => defined('BN_SINGLE')]);
+
 case 'health':
     $out = ['php' => PHP_VERSION, 'php_ok' => version_compare(PHP_VERSION, '8.0', '>='), 'settings_found' => !empty(bn_config()['DB_DATABASE']) || !empty(bn_config()['BN_SQLITE'])];
     try {
@@ -509,6 +543,7 @@ case 'health':
     }
     $up = BN_UPLOADS;
     $out['uploads_folder'] = is_dir($up) && is_writable($up) ? 'writable' : 'not writable';
+    $out['leftover_files'] = count(bn_leftovers());
     $out['ready'] = $out['php_ok'] && $out['database'] === 'connected' && $out['uploads_folder'] === 'writable';
     bn_json($out);
 
@@ -632,6 +667,45 @@ case 'forgot':
     }
     // same answer either way, so nobody can test which emails have accounts
     bn_json(['ok' => true]);
+
+/* ---------------- owner recovery: proves control of the site's files, then resets the admin login ---------------- */
+case 'owner_reset':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    bn_throttle('owner:' . bn_ip(), 6, 3600);
+    $kf = null;
+    foreach ([__DIR__ . '/owner-key.php', dirname(__DIR__) . '/owner-key.php'] as $f) if (is_file($f)) { $kf = $f; break; }
+    if (!$kf) bn_fail('no_key', 'Owner recovery is off. Add the owner-key.php file first (see the steps), then try again.', 400);
+    $key = @include $kf;
+    if (!is_string($key) || strlen(trim($key)) < 16) bn_fail('no_key', 'The owner key in owner-key.php needs to be at least 16 characters.', 400);
+    $b = bn_body();
+    $email = strtolower(trim((string) ($b['email'] ?? '')));
+    $pass = (string) ($b['password'] ?? '');
+    if (!hash_equals(trim($key), trim((string) ($b['key'] ?? '')))) bn_fail('bad_key', 'That owner key doesn\'t match the one in owner-key.php.', 403);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) bn_fail('invalid', 'Enter a valid email address.');
+    if (strlen($pass) < 10 || strlen($pass) > 200) bn_fail('invalid', 'Use a password with at least 10 characters.');
+    $db = bn_db();
+    $admin = $db->query('SELECT id FROM bn_users WHERE is_admin = 1 ORDER BY created ASC LIMIT 1')->fetchColumn();
+    $st = $db->prepare('SELECT id FROM bn_users WHERE email = ? AND id <> ?');
+    $st->execute([$email, (string) $admin]);
+    if ($st->fetchColumn()) bn_fail('exists', 'Another member already uses that email. Choose a different one.', 409);
+    if ($admin) {
+        $db->prepare('UPDATE bn_users SET email = ?, pass = ? WHERE id = ?')->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $admin]);
+        $db->prepare('DELETE FROM bn_totp WHERE user_id = ?')->execute([$admin]);
+        $u = bn_get_doc('users/' . $admin);
+        if ($u) { $u->email = $email; $u->status = 'Active'; bn_put_doc('users/' . $admin, $u); }
+        $id = (string) $admin;
+    } else {
+        $id = bn_create_account('Site Owner', $email, password_hash($pass, PASSWORD_DEFAULT), null);
+    }
+    $db->prepare("DELETE FROM bn_attempts WHERE k LIKE 'login%' OR k LIKE 'mfa%'")->execute();
+    $db->prepare('DELETE FROM bn_resets WHERE user_id = ?')->execute([$id]);
+    @unlink($kf); // one use only
+    error_log('[bn] owner recovery used for ' . $id);
+    bn_session();
+    session_regenerate_id(true);
+    unset($_SESSION['mfa_uid'], $_SESSION['mfa_at']);
+    $_SESSION['uid'] = $id;
+    bn_json(['ok' => true, 'key_removed' => !is_file($kf)]);
 
 case 'reset':
     if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
