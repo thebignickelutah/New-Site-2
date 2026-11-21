@@ -505,6 +505,83 @@ function bn_rm(string $path, string $root): void {
     } else @unlink($real);
 }
 
+/* ---------- live weather ticker: National Weather Service (public domain), cached for everyone ---------- */
+const BN_WX_TOWNS = [
+    ['Ogden', 41.2230, -111.9738], ['Layton', 41.0602, -111.9711], ['Logan', 41.7370, -111.8338], ['Brigham City', 41.5102, -112.0155],
+    ['Huntsville', 41.2602, -111.7683], ['Morgan', 41.0361, -111.6769], ['Tremonton', 41.7116, -112.1655], ['Salt Lake City', 40.7608, -111.8910],
+    ['Park City', 40.6461, -111.4980], ['Snowbasin', 41.2160, -111.8570],
+];
+// Box Elder, Cache, Davis, Morgan, Rich, Salt Lake, Summit, Tooele, Utah, Wasatch, Weber
+const BN_WX_COUNTIES = ['049003', '049005', '049011', '049029', '049033', '049035', '049043', '049045', '049049', '049051', '049057'];
+
+/** Fetches several URLs at once. Returns [url => decoded JSON or null]. */
+function bn_http_json_many(array $urls): array {
+    $fx = getenv('BN_WX_FIXTURE');
+    if ($fx) { $all = json_decode((string) @file_get_contents($fx), true) ?: []; $o = []; foreach ($urls as $u) $o[$u] = $all[$u] ?? null; return $o; }
+    $mh = curl_multi_init(); $hs = [];
+    foreach ($urls as $u) {
+        $h = curl_init($u);
+        curl_setopt_array($h, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8, CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTPHEADER => ['Accept: application/geo+json', 'User-Agent: TheBigNickelClassifieds (service@thebignickel.biz)']]);
+        curl_multi_add_handle($mh, $h); $hs[$u] = $h;
+    }
+    do { $st = curl_multi_exec($mh, $run); if ($run) curl_multi_select($mh, 1.0); } while ($run && $st === CURLM_OK);
+    $o = [];
+    foreach ($hs as $u => $h) {
+        $code = (int) curl_getinfo($h, CURLINFO_HTTP_CODE);
+        $o[$u] = $code === 200 ? json_decode((string) curl_multi_getcontent($h), true) : null;
+        curl_multi_remove_handle($mh, $h); curl_close($h);
+    }
+    curl_multi_close($mh);
+    return $o;
+}
+
+function bn_wx_ticker(): array {
+    $cache = json_decode(bn_secret('wx_cache'), true) ?: [];
+    $age = time() - (int) ($cache['at'] ?? 0);
+    if ($cache && $age < 900) return $cache;
+    // only one visitor refreshes at a time; the rest get the last copy
+    if ($cache && time() - (int) bn_secret('wx_lock') < 60) return $cache;
+    bn_secret_set('wx_lock', (string) time());
+    $grid = json_decode(bn_secret('wx_grid'), true) ?: [];
+    $need = [];
+    foreach (BN_WX_TOWNS as [$n, $la, $lo]) if (empty($grid[$n])) $need[$n] = sprintf('https://api.weather.gov/points/%.4f,%.4f', $la, $lo);
+    if ($need) {
+        $r = bn_http_json_many(array_values($need));
+        foreach ($need as $n => $u) { $h = $r[$u]['properties']['forecastHourly'] ?? ''; if (is_string($h) && str_starts_with($h, 'https://api.weather.gov/')) $grid[$n] = $h; }
+        bn_secret_set('wx_grid', json_encode($grid));
+    }
+    $urls = array_values(array_filter(array_map(fn($t) => $grid[$t[0]] ?? null, BN_WX_TOWNS)));
+    $alertsUrl = 'https://api.weather.gov/alerts/active?area=UT';
+    $r = bn_http_json_many(array_merge($urls, [$alertsUrl]));
+    $old = []; foreach ($cache['towns'] ?? [] as $t) $old[$t['n']] = $t;
+    $towns = [];
+    foreach (BN_WX_TOWNS as [$n]) {
+        $p = $r[$grid[$n] ?? '']['properties']['periods'][0] ?? null;
+        if (is_array($p) && isset($p['temperature'])) {
+            $towns[] = ['n' => $n, 't' => (int) $p['temperature'], 'f' => mb_substr((string) ($p['shortForecast'] ?? ''), 0, 60),
+                'w' => mb_substr(trim(($p['windDirection'] ?? '') . ' ' . ($p['windSpeed'] ?? '')), 0, 24), 'd' => !empty($p['isDaytime'])];
+        } elseif (isset($old[$n])) $towns[] = $old[$n];
+    }
+    $alerts = [];
+    if (is_array($r[$alertsUrl]['features'] ?? null)) {
+        foreach ($r[$alertsUrl]['features'] as $f) {
+            $a = $f['properties'] ?? [];
+            if (($a['status'] ?? '') !== 'Actual' || array_intersect($a['geocode']['SAME'] ?? [], BN_WX_COUNTIES) === []) continue;
+            $ends = strtotime((string) ($a['ends'] ?? $a['expires'] ?? '')) ?: 0;
+            if ($ends && $ends < time()) continue;
+            $alerts[] = ['e' => mb_substr((string) ($a['event'] ?? 'Alert'), 0, 60), 'a' => mb_substr((string) ($a['areaDesc'] ?? ''), 0, 120),
+                'end' => $ends * 1000, 'sev' => in_array($a['severity'] ?? '', ['Extreme', 'Severe'], true) ? 'hi' : 'lo'];
+        }
+        usort($alerts, fn($x, $y) => strcmp($x['sev'], $y['sev']));
+        $alerts = array_slice($alerts, 0, 6);
+    } else $alerts = $cache['alerts'] ?? [];
+    $out = ['at' => time(), 'towns' => $towns, 'alerts' => $alerts];
+    if ($towns || $alerts) bn_secret_set('wx_cache', json_encode($out));
+    else if ($cache) return $cache;
+    return $out;
+}
+
 /* ================= request handler ================= */
 
 set_exception_handler(function (Throwable $e) {
@@ -530,6 +607,9 @@ case 'cleanup':
         error_log('[bn] cleanup by ' . $me['id']);
     }
     bn_json(['left' => bn_leftovers(), 'single' => defined('BN_SINGLE')]);
+
+case 'wx_ticker':
+    try { bn_json(bn_wx_ticker()); } catch (Throwable $e) { error_log('[bn] wx: ' . $e->getMessage()); bn_json(['at' => 0, 'towns' => [], 'alerts' => []]); }
 
 case 'health':
     $out = ['php' => PHP_VERSION, 'php_ok' => version_compare(PHP_VERSION, '8.0', '>='), 'settings_found' => !empty(bn_config()['DB_DATABASE']) || !empty(bn_config()['BN_SQLITE'])];
