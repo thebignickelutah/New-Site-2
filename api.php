@@ -240,6 +240,185 @@ function bn_redact(string $path, object $d, ?array $me): object {
     return $d;
 }
 
+/* ---------- money guard: members can't mark their own orders paid or feature listings for free ---------- */
+const BN_DAY_MS = 86400000;
+const BN_PW_FEAT = 25;          // featured listings per Power Seller month
+const BN_PW_DAYS = 30;
+
+function bn_objs($v): array { return is_array($v) ? array_values(array_filter($v, 'is_object')) : []; }
+function bn_clone($v) { return json_decode(json_encode($v)); }
+
+/** What a member may change on one of their own existing records; everything else stays as stored. */
+function bn_guard_existing(string $kind, object $old, object $new): object {
+    $o = bn_clone($old);
+    $now = bn_now();
+    $moves = [
+        'upgrades' => ['Awaiting payment' => ['Payment submitted', 'Cancelled'], 'Payment submitted' => ['Cancelled']],
+        'shop' => ['Awaiting payment' => ['Payment submitted', 'Cancelled'], 'Payment submitted' => ['Cancelled'], 'Shipped' => ['Completed'], 'Ready for pickup' => ['Completed']],
+        'orders' => [],
+    ][$kind];
+    $from = (string) ($old->status ?? '');
+    $to = is_string($new->status ?? null) ? $new->status : $from;
+    if ($to !== $from && in_array($to, $moves[$from] ?? [], true)) $o->status = $to;
+    if (isset($new->payStarted) && (is_int($new->payStarted) || is_float($new->payStarted) || is_string($new->payStarted))) $o->payStarted = is_string($new->payStarted) ? substr($new->payStarted, 0, 40) : $new->payStarted;
+    if ($kind === 'upgrades' && ($new->applied ?? false) === true && $from === 'Paid' && empty($old->applied)) { $o->applied = true; $o->appliedAt = $now; }
+    if ($kind === 'shop') {
+        if (isset($new->ship) && is_object($new->ship) && isset($new->ship->payStarted)) {
+            if (!isset($o->ship) || !is_object($o->ship)) $o->ship = new stdClass();
+            $o->ship->payStarted = (int) $new->ship->payStarted;
+        }
+        $om = bn_objs($old->msgs ?? []); $nm = bn_objs($new->msgs ?? []);
+        foreach (array_slice($nm, count($om)) as $m) $om[] = (object) ['from' => 'buyer', 't' => mb_substr(strip_tags((string) ($m->t ?? '')), 0, 2000), 'at' => $now];
+        $o->msgs = array_slice($om, -200);
+    }
+    return $o;
+}
+
+/** A record a member is creating: it always starts unpaid. */
+function bn_guard_fresh(string $kind, object $r, object $doc): object {
+    foreach (['paid', 'paidAt', 'paidAmount', 'payout', 'applied', 'appliedAt'] as $k) unset($r->$k);
+    if ($kind === 'upgrades') { $r->status = 'Awaiting payment'; $r->applied = false; }
+    if ($kind === 'shop') {
+        $r->status = 'Awaiting payment';
+        $r->ship = (object) [];
+        foreach (bn_objs($r->msgs ?? []) as $m) $m->from = 'buyer';
+    }
+    if ($kind === 'orders') {
+        $st = (string) ($r->status ?? '');
+        if (!in_array($st, ['Quote requested', 'Awaiting payment', 'Pending review'], true)) $st = 'Awaiting payment';
+        if (!empty($r->powerPerk)) {
+            $pw = bn_power_window($doc);
+            $ad = $doc->power->ad ?? null;
+            $used = is_object($ad) && (int) ($ad->at ?? 0) >= $pw[0];
+            if (!$pw[1] || $used) { unset($r->powerPerk); $st = 'Awaiting payment'; }
+        }
+        $pay = bn_get_doc('settings/paypal');
+        if ($st === 'Pending review' && empty($r->powerPerk) && (float) ($r->total ?? 0) > 0 && $pay && !empty($pay->email)) $st = 'Awaiting payment';
+        $r->status = $st;
+    }
+    return $r;
+}
+
+/** [start, active] of the member's paid Power Seller month, from their stored (admin-confirmed) upgrades. */
+function bn_power_window(object $doc): array {
+    $start = 0;
+    foreach (bn_objs($doc->upgrades ?? []) as $u) {
+        if (($u->status ?? '') !== 'Paid') continue;
+        foreach (bn_objs($u->items ?? []) as $i) if (($i->kind ?? '') === 'power') $start = max($start, (int) ($u->paidAt ?? $u->at ?? 0));
+    }
+    return [$start, $start > 0 && bn_now() < $start + BN_PW_DAYS * BN_DAY_MS];
+}
+
+/** adorders/{uid} written by its member: keep admin decisions, allow only buyer-side steps. */
+function bn_guard_adorders(object $new, ?object $old): object {
+    $old = $old ?? new stdClass();
+    $perkAd = null;
+    foreach (['upgrades', 'shop', 'orders'] as $kind) {
+        if (!property_exists($new, $kind) && !property_exists($old, $kind)) continue;
+        $byId = [];
+        foreach (bn_objs($old->$kind ?? []) as $r) $byId[(string) ($r->id ?? '')] = $r;
+        $out = []; $seen = [];
+        foreach (bn_objs($new->$kind ?? []) as $r) {
+            $id = (string) ($r->id ?? '');
+            if ($id === '' || isset($seen[$id])) continue;
+            $seen[$id] = true;
+            $out[] = isset($byId[$id]) ? bn_guard_existing($kind, $byId[$id], $r) : bn_guard_fresh($kind, $r, $old);
+        }
+        // records the admin has acted on can't be erased by the member
+        foreach ($byId as $id => $r) if (!isset($seen[$id]) && !in_array((string) ($r->status ?? ''), ['Awaiting payment', 'Cancelled', 'Quote requested'], true)) $out[] = $r;
+        $new->$kind = $out;
+        if ($kind === 'orders') foreach ($out as $r) if (!isset($byId[(string) $r->id]) && !empty($r->powerPerk)) $perkAd = (string) $r->id;
+    }
+    // Power Seller usage: only while the plan is paid up, never more than the monthly allowance, never erased
+    [$start, $active] = bn_power_window($old);
+    $op = isset($old->power) && is_object($old->power) ? $old->power : (object) ['feat' => [], 'ad' => null];
+    $np = isset($new->power) && is_object($new->power) ? $new->power : new stdClass();
+    $feat = bn_objs($op->feat ?? []);
+    $have = [];
+    foreach ($feat as $f) $have[(int) ($f->lid ?? 0) . ':' . (int) ($f->at ?? 0)] = true;
+    $n = count(array_filter($feat, fn($f) => (int) ($f->at ?? 0) >= $start));
+    foreach (bn_objs($np->feat ?? []) as $f) {
+        $lid = (int) ($f->lid ?? 0);
+        if ($lid <= 0 || isset($have[$lid . ':' . (int) ($f->at ?? 0)])) continue;
+        if (!$active || $n >= BN_PW_FEAT) continue;
+        $feat[] = (object) ['lid' => $lid, 'at' => bn_now()]; $n++;
+    }
+    $ad = isset($op->ad) && is_object($op->ad) ? $op->ad : null;
+    // the free banner week is used up the moment its order is placed
+    if ($active && !($ad && (int) ($ad->at ?? 0) >= $start) && ($perkAd !== null || (isset($np->ad) && is_object($np->ad)))) $ad = (object) ['at' => bn_now(), 'id' => substr($perkAd ?? (string) ($np->ad->id ?? ''), 0, 80)];
+    if ($feat || $ad || isset($old->power) || isset($new->power)) $new->power = (object) ['feat' => array_slice($feat, -200), 'ad' => $ad];
+    return $new;
+}
+
+/* Per-member ledger the browser never sees: seller-reward progress and which paid perks were used. */
+function bn_ent_get(string $uid): object {
+    $d = json_decode(bn_secret('ent:' . $uid), false);
+    $d = is_object($d) ? $d : new stdClass();
+    $d->ids = is_array($d->ids ?? null) ? $d->ids : [];
+    $d->rw = is_array($d->rw ?? null) ? $d->rw : [];
+    $d->fu = isset($d->fu) && is_object($d->fu) ? $d->fu : new stdClass();
+    $d->bu = isset($d->bu) && is_object($d->bu) ? $d->bu : new stdClass();
+    return $d;
+}
+function bn_promo(): array {
+    $p = bn_get_doc('settings/promo') ?? new stdClass();
+    $r = in_array($p->reward ?? '', ['choice', 'feature', 'bump'], true) ? $p->reward : 'choice';
+    return ['on' => ($p->on ?? true) !== false, 'n' => max(2, min(20, (int) round((float) ($p->n ?? 5)) ?: 5)), 'reward' => $r];
+}
+function bn_rewards_status(string $uid): array {
+    $e = bn_ent_get($uid); $p = bn_promo();
+    $earned = intdiv(count($e->ids), $p['n']);
+    return ['count' => count($e->ids), 'earned' => $earned, 'used' => count($e->rw), 'left' => max(0, $earned - count($e->rw)), 'n' => $p['n'], 'on' => $p['on'], 'reward' => $p['reward']];
+}
+
+/** userposts/{uid} written by its member: "featured" and "bumped" only with a paid perk or an earned reward. */
+function bn_guard_userposts(object $new, ?object $old, string $uid): object {
+    if (!property_exists($new, 'listings') || !is_array($new->listings)) return $new;
+    $now = bn_now();
+    $ent = bn_ent_get($uid); $promo = bn_promo();
+    $ao = bn_get_doc('adorders/' . $uid) ?? new stdClass();
+    // perks granted per listing: admin-confirmed upgrades, plus Power Seller featured picks
+    $grant = ['feature' => [], 'bump' => []];
+    foreach (bn_objs($ao->upgrades ?? []) as $u) if (($u->status ?? '') === 'Paid')
+        foreach (bn_objs($u->items ?? []) as $i) { $k = $i->kind ?? ''; $l = (int) ($i->lid ?? 0); if (isset($grant[$k]) && $l) $grant[$k][$l] = ($grant[$k][$l] ?? 0) + 1; }
+    foreach (bn_objs($ao->power->feat ?? []) as $f) { $l = (int) ($f->lid ?? 0); if ($l) $grant['feature'][$l] = ($grant['feature'][$l] ?? 0) + 1; }
+    $prev = [];
+    foreach (bn_objs($old->listings ?? []) as $l) $prev[(int) ($l->id ?? 0)] = $l;
+    $left = fn() => max(0, intdiv(count($ent->ids), $promo['n']) - count($ent->rw));
+    $take = function (int $lid, string $kind) use (&$grant, $ent, $promo, $left, $now): bool {
+        $used = (int) ($ent->{$kind === 'feature' ? 'fu' : 'bu'}->$lid ?? 0);
+        if (($grant[$kind][$lid] ?? 0) > $used) { $ent->{$kind === 'feature' ? 'fu' : 'bu'}->$lid = $used + 1; return true; }
+        if ($promo['on'] && in_array($promo['reward'], ['choice', $kind], true) && $left() > 0) { $ent->rw[] = (object) ['lid' => $lid, 'kind' => $kind, 'at' => $now]; return true; }
+        return false;
+    };
+    foreach ($new->listings as $l) {
+        if (!is_object($l)) continue;
+        $lid = (int) ($l->id ?? 0);
+        if ($lid <= 0) continue;
+        if ($promo['on'] && !in_array($lid, $ent->ids, true) && count($ent->ids) < 5000) $ent->ids[] = $lid;
+        $o = $prev[$lid] ?? null;
+        // featured
+        $curOn = $o && ($o->featured ?? false) === true;
+        $curUntil = $curOn ? (isset($o->featUntil) ? (int) $o->featUntil : PHP_INT_MAX) : 0;
+        if (($l->featured ?? false) === true) {
+            $want = (int) ($l->featUntil ?? 0);
+            $asks = $curUntil <= $now || ($curUntil !== PHP_INT_MAX && $want > $curUntil + BN_DAY_MS);
+            if ($asks && $take($lid, 'feature')) $curUntil = max($curUntil, $now) + 7 * BN_DAY_MS;
+            if ($curUntil > $now) { $l->featured = true; if ($curUntil === PHP_INT_MAX) unset($l->featUntil); else $l->featUntil = $curUntil; }
+            else { $l->featured = false; unset($l->featUntil); }
+        } elseif (isset($l->featUntil) && !$curOn) unset($l->featUntil);
+        // bumped
+        $ob = (int) ($o->bumps ?? 0);
+        if ((int) ($l->bumps ?? 0) > $ob && $take($lid, 'bump')) { $l->bumps = $ob + 1; $l->bumped = $now; $l->posted = 0; }
+        else {
+            if ($o && isset($o->bumped)) $l->bumped = $o->bumped; else unset($l->bumped);
+            if ($ob) $l->bumps = $ob; else unset($l->bumps);
+        }
+    }
+    bn_secret_set('ent:' . $uid, json_encode($ent));
+    return $new;
+}
+
 function bn_can(string $op, string $path, ?array $me): bool {
     $p = bn_split($path);
     if (!$p) return false;
@@ -608,6 +787,11 @@ case 'cleanup':
     }
     bn_json(['left' => bn_leftovers(), 'single' => defined('BN_SINGLE')]);
 
+case 'rewards':
+    $me = bn_me();
+    if (!$me) bn_fail('unauthenticated', 'Please sign in first.', 401);
+    bn_json(bn_rewards_status($me['id']));
+
 case 'wx_ticker':
     try { bn_json(bn_wx_ticker()); } catch (Throwable $e) { error_log('[bn] wx: ' . $e->getMessage()); bn_json(['at' => 0, 'towns' => [], 'alerts' => []]); }
 
@@ -898,6 +1082,7 @@ case 'delete':
     if (!bn_can('write', $path, $me)) bn_fail('permission_denied', $me ? 'You can\'t change that.' : 'Please sign in first.', $me ? 403 : 401);
     bn_throttle('w:' . ($me['id'] ?? bn_ip()), 240, 60);
     if ($route === 'delete') {
+        if (!$me['is_admin'] && str_starts_with($path, 'adorders/')) bn_fail('permission_denied', 'Ask the site admin to remove orders.', 403);
         $db = bn_db();
         $db->prepare('UPDATE bn_docs SET deleted = 1, data = NULL, updated = ? WHERE path = ?')->execute([bn_now(), $path]);
         bn_json(['ok' => true]);
@@ -909,6 +1094,11 @@ case 'delete':
         if ($cur === null) bn_fail('not_found', 'Nothing to update yet.', 404);
         foreach (get_object_vars($data) as $k => $v) $cur->$k = $v;
         $data = $cur;
+    }
+    if (!$me['is_admin']) {
+        // members can't mark their own orders paid, or feature or bump listings they haven't paid for
+        if (str_starts_with($path, 'adorders/')) $data = bn_guard_adorders($data, bn_get_doc($path));
+        if (str_starts_with($path, 'userposts/')) $data = bn_guard_userposts($data, bn_get_doc($path), $me['id']);
     }
     bn_put_doc($path, $data);
     bn_json(['ok' => true]);
