@@ -2321,6 +2321,8 @@ td.num{font-family:var(--f-mono);text-align:right;white-space:nowrap}
 .bw-nav-name{display:flex;align-items:center;gap:8px;font-size:15px;min-width:0;white-space:nowrap}.bw-nav-name span{overflow:hidden;text-overflow:ellipsis}
 .bw-nav-links{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}.bw-nav-links::-webkit-scrollbar{display:none}
 .bw-nav-links button{border:0;background:none;font:500 14px var(--f-body);color:var(--fg);padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}.bw-nav-links button:hover{background:var(--bzt);color:var(--bz)}
+.bw-nav-edit{display:inline-flex;align-items:center;gap:6px;flex:none;background:#fff;color:#111;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font:600 13.5px var(--f-body);white-space:nowrap;cursor:pointer}.bw-nav-edit:hover{border-color:#111}
+@media (max-width:600px){.bw-nav-edit{padding:8px}.bw-nav-edit span{display:none}}
 .bw-nav-call{display:inline-flex;align-items:center;gap:6px;background:var(--bz);color:#fff;border:0;border-radius:999px;padding:8px 14px;font:600 13.5px var(--f-body);text-decoration:none;white-space:nowrap;cursor:pointer}
 .bw-hl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:-1px;padding-block:44px 8px}
 .bw-hl-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(10,10,11,.06)}
@@ -4773,7 +4775,7 @@ function vBizDetail(sl){
   const city=bizCity(b), hl=(b.highlights||[]).filter(h=>h&&h[0]), st=(b.stats||[]).filter(x=>x&&x[0]), svc=b.services||[];
   const IC=(n,sz=18)=>ico(n,"i",`width:${sz}px;height:${sz}px`), tel=(b.ph||"").replace(/[^\d+]/g,"");
   const hh=bizHasHours(b), open=hh&&bizOpenNow(b), PS=placeStats(b.slug), R=allReviews().filter(r=>r.place===b.slug).sort((a,c)=>c.rating-a.rating||c.ts-a.ts).slice(0,3);
-  const editBtn=ADS.admin?`<button class="btn bz-glass" data-bizedit="${b.slug}">${IC("gear",16)}Edit business</button>`:"";
+  const editBtn=ADS.admin?`<button class="bw-nav-edit" type="button" data-bizedit="${b.slug}">${IC("gear",15)}<span>Edit business</span></button>`:"";
   const fb=b.fb?`<a href="${esc(b.fb)}" target="_blank" rel="noopener" aria-label="${esc(b.n)} on Facebook">${IC("fb",18)}</a>`:"";
   const shareBtns=[["Facebook","https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url)],["X","https://x.com/intent/tweet?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(b.n+" on The Big Nickel")],["LinkedIn","https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(url)],["Reddit","https://www.reddit.com/submit?url="+encodeURIComponent(url)+"&title="+encodeURIComponent(b.n+" on The Big Nickel")]];
   const aboutImg=(gal.find(g=>g.featured)||gal[0]||{}).url||b.cover||"";
@@ -4782,11 +4784,11 @@ function vBizDetail(sl){
   const second=b.addr?`<a class="bw-btn bw-btn-g" href="${maps}" target="_blank" rel="noopener">${IC("pin",18)}Get directions</a>`:b.web?`<a class="bw-btn bw-btn-g" href="${esc(b.web)}" target="_blank" rel="noopener">${IC("grid",18)}Visit website</a>`:"";
   const trust=[PS.n?`<span>${starHTML(PS.avg)} <b>${PS.avg.toFixed(1)}</b> \u00B7 ${PS.n} review${PS.n===1?"":"s"}</span>`:"",b.founded?`<span>${IC("clock",15)}Since ${esc(b.founded)}</span>`:"",hh?`<span class="${open?"bw-open":""}">${IC("clock",15)}${open?"Open now":"Closed now"}</span>`:"",`<span>${IC("pin",15)}${esc(city)}</span>`].filter(Boolean).join("");
   return `<div class="bw" style="--bz:${b.c}">
-  <section class="bw-hero" aria-label="${esc(b.n)}">${bizHeroSlider(b)}<div class="bw-shade"></div>${editBtn?`<div class="bp-edit">${editBtn}</div>`:""}
+  <section class="bw-hero" aria-label="${esc(b.n)}">${bizHeroSlider(b)}<div class="bw-shade"></div>
     <div class="bw-in bw-hero-in"><div class="bw-eyebrow">${bizMark(b,"bw-mark")}<span>${esc(b.t)} \u00B7 ${esc(city)}</span></div>
       <h1>${esc(b.n)}</h1><p class="bw-lead">${esc(b.tagline||b.d)}</p>
       <div class="bw-ctas">${primary}${second}</div><div class="bw-trust">${trust}</div></div></section>
-  <nav class="bw-nav" aria-label="${esc(b.n)} sections"><div class="bw-in bw-nav-in"><b class="bw-nav-name">${bizMark(b,"bw-mark sm")}<span>${esc(b.n)}</span></b><div class="bw-nav-links">${nav.map(([id,l])=>`<button data-bwgo="${id}">${l}</button>`).join("")}</div></div></nav>
+  <nav class="bw-nav" aria-label="${esc(b.n)} sections"><div class="bw-in bw-nav-in"><b class="bw-nav-name">${bizMark(b,"bw-mark sm")}<span>${esc(b.n)}</span></b><div class="bw-nav-links">${nav.map(([id,l])=>`<button data-bwgo="${id}">${l}</button>`).join("")}</div>${editBtn}</div></nav>
   ${hl.length?`<section class="bw-in bw-hl bw-hl-${Math.min(hl.length,4)}" aria-label="Highlights">${(()=>{const P=bwImgs(b);return hl.slice(0,4).map((h,i)=>`<div class="bw-hl-card"><div class="bw-hl-img">${bwPic(b,P.hl(i),b.slug+h[0],h[0])}<span class="bw-hl-ov"></span><span class="bw-ic bw-ic-f">${IC(["shield","star","clock","chart"][i],24)}</span></div><div class="bw-hl-txt"><h3>${esc(h[0])}</h3><p>${esc(h[1])}</p></div></div>`).join("")})()}</section>`:""}
   <section class="bw-sec" id="bw-about"><div class="bw-in bw-split"><div class="bw-copy"><div class="bw-kicker">About us</div><h2>${esc(b.tagline||("Welcome to "+b.n))}</h2><p class="bw-body">${esc(b.about||b.d)}</p>
       <div class="bw-facts">${b.founded?`<div><small>Founded</small><b>${esc(b.founded)}</b></div>`:""}${b.owner?`<div><small>Owner</small><b>${esc(b.owner)}</b></div>`:""}<div><small>Category</small><b>${esc(b.t)}</b></div><div><small>Location</small><b>${esc(city)}</b></div></div>
