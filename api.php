@@ -243,6 +243,7 @@ function bn_redact(string $path, object $d, ?array $me): object {
 /* ---------- money guard: members can't mark their own orders paid or feature listings for free ---------- */
 const BN_DAY_MS = 86400000;
 const BN_PW_FEAT = 25;          // featured listings per Power Seller month
+const BN_PW_BUMP = 10;          // free bumps per Power Seller month
 const BN_PW_DAYS = 30;
 
 function bn_objs($v): array { return is_array($v) ? array_values(array_filter($v, 'is_object')) : []; }
@@ -299,14 +300,20 @@ function bn_guard_fresh(string $kind, object $r, object $doc): object {
     return $r;
 }
 
-/** [start, active] of the member's paid Power Seller month, from their stored (admin-confirmed) upgrades. */
+/** [start of this month's perks, active] for the member's paid Power Seller plan (1 month, or 3 months
+ *  where perks reset every 30 days), from their stored admin-confirmed upgrades. */
 function bn_power_window(object $doc): array {
-    $start = 0;
+    $now = bn_now(); $M = BN_PW_DAYS * BN_DAY_MS; $best = null;
     foreach (bn_objs($doc->upgrades ?? []) as $u) {
         if (($u->status ?? '') !== 'Paid') continue;
-        foreach (bn_objs($u->items ?? []) as $i) if (($i->kind ?? '') === 'power') $start = max($start, (int) ($u->paidAt ?? $u->at ?? 0));
+        $months = 0;
+        foreach (bn_objs($u->items ?? []) as $i) { $k = $i->kind ?? ''; if ($k === 'power') $months = max($months, 1); if ($k === 'power3') $months = 3; }
+        if (!$months) continue;
+        $s = (int) ($u->paidAt ?? $u->at ?? 0); $e = $s + $months * $M;
+        if ($s <= $now && $now < $e && (!$best || $s > $best[0])) $best = [$s, $e];
     }
-    return [$start, $start > 0 && bn_now() < $start + BN_PW_DAYS * BN_DAY_MS];
+    if (!$best) return [0, false];
+    return [$best[0] + intdiv($now - $best[0], $M) * $M, true];
 }
 
 /** adorders/{uid} written by its member: keep admin decisions, allow only buyer-side steps. */
@@ -333,20 +340,25 @@ function bn_guard_adorders(object $new, ?object $old): object {
     [$start, $active] = bn_power_window($old);
     $op = isset($old->power) && is_object($old->power) ? $old->power : (object) ['feat' => [], 'ad' => null];
     $np = isset($new->power) && is_object($new->power) ? $new->power : new stdClass();
-    $feat = bn_objs($op->feat ?? []);
-    $have = [];
-    foreach ($feat as $f) $have[(int) ($f->lid ?? 0) . ':' . (int) ($f->at ?? 0)] = true;
-    $n = count(array_filter($feat, fn($f) => (int) ($f->at ?? 0) >= $start));
-    foreach (bn_objs($np->feat ?? []) as $f) {
-        $lid = (int) ($f->lid ?? 0);
-        if ($lid <= 0 || isset($have[$lid . ':' . (int) ($f->at ?? 0)])) continue;
-        if (!$active || $n >= BN_PW_FEAT) continue;
-        $feat[] = (object) ['lid' => $lid, 'at' => bn_now()]; $n++;
-    }
+    $uses = function (string $k, int $cap) use ($op, $np, $start, $active): array {
+        $list = bn_objs($op->$k ?? []);
+        $have = [];
+        foreach ($list as $f) $have[(int) ($f->lid ?? 0) . ':' . (int) ($f->at ?? 0)] = true;
+        $n = count(array_filter($list, fn($f) => (int) ($f->at ?? 0) >= $start));
+        foreach (bn_objs($np->$k ?? []) as $f) {
+            $lid = (int) ($f->lid ?? 0);
+            if ($lid <= 0 || isset($have[$lid . ':' . (int) ($f->at ?? 0)])) continue;
+            if (!$active || $n >= $cap) continue;
+            $list[] = (object) ['lid' => $lid, 'at' => bn_now()]; $n++;
+        }
+        return array_slice($list, -200);
+    };
+    $feat = $uses('feat', BN_PW_FEAT);
+    $bump = $uses('bump', BN_PW_BUMP);
     $ad = isset($op->ad) && is_object($op->ad) ? $op->ad : null;
     // the free banner week is used up the moment its order is placed
     if ($active && !($ad && (int) ($ad->at ?? 0) >= $start) && ($perkAd !== null || (isset($np->ad) && is_object($np->ad)))) $ad = (object) ['at' => bn_now(), 'id' => substr($perkAd ?? (string) ($np->ad->id ?? ''), 0, 80)];
-    if ($feat || $ad || isset($old->power) || isset($new->power)) $new->power = (object) ['feat' => array_slice($feat, -200), 'ad' => $ad];
+    if ($feat || $bump || $ad || isset($old->power) || isset($new->power)) $new->power = (object) ['feat' => $feat, 'bump' => $bump, 'ad' => $ad];
     return $new;
 }
 
@@ -382,6 +394,7 @@ function bn_guard_userposts(object $new, ?object $old, string $uid): object {
     foreach (bn_objs($ao->upgrades ?? []) as $u) if (($u->status ?? '') === 'Paid')
         foreach (bn_objs($u->items ?? []) as $i) { $k = $i->kind ?? ''; $l = (int) ($i->lid ?? 0); if (isset($grant[$k]) && $l) $grant[$k][$l] = ($grant[$k][$l] ?? 0) + 1; }
     foreach (bn_objs($ao->power->feat ?? []) as $f) { $l = (int) ($f->lid ?? 0); if ($l) $grant['feature'][$l] = ($grant['feature'][$l] ?? 0) + 1; }
+    foreach (bn_objs($ao->power->bump ?? []) as $f) { $l = (int) ($f->lid ?? 0); if ($l) $grant['bump'][$l] = ($grant['bump'][$l] ?? 0) + 1; }
     $prev = [];
     foreach (bn_objs($old->listings ?? []) as $l) $prev[(int) ($l->id ?? 0)] = $l;
     $left = fn() => max(0, intdiv(count($ent->ids), $promo['n']) - count($ent->rw));
