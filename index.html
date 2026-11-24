@@ -2210,6 +2210,9 @@ img.lph{width:100%;height:100%;object-fit:cover;display:block}
 .modal.sm{width:min(460px,100%)}
 .modal-x{position:absolute;top:10px;right:10px;z-index:2;background:var(--rail);color:#fff;border:0;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;cursor:pointer}
 .detail{display:grid;grid-template-columns:1.1fr .9fr}
+/* listing popup: wider window, photo gets most of the room */
+.modal:has(>.detail){width:min(1240px,100%)}
+@media (min-width:721px){.detail{grid-template-columns:minmax(0,1.5fr) minmax(340px,.85fr)}}
 .pf-lbl{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.pf-lbl small{text-transform:none;letter-spacing:0;font-size:12px;margin-left:6px}
 .pf-drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px;text-align:center;cursor:pointer}.pf-drop.over{border-color:var(--fg);background:var(--paper)}.pf-drop.full{opacity:.5;pointer-events:none}.pf-drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .pf-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:8px}.pf-thumbs:empty{display:none}
