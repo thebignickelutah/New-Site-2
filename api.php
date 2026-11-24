@@ -112,9 +112,9 @@ function bn_is_sqlite(PDO $db): bool { return $db->getAttribute(PDO::ATTR_DRIVER
 
 /** Creates the tables the first time the backend runs (no command line needed on Cloudways). */
 function bn_schema(PDO $db): void {
-    $flag = sys_get_temp_dir() . '/bn-schema-v2-' . md5((string) json_encode(bn_config()['DB_DATABASE'] ?? bn_config()['BN_SQLITE'] ?? ''));
+    $flag = sys_get_temp_dir() . '/bn-schema-v4-' . md5((string) json_encode(bn_config()['DB_DATABASE'] ?? bn_config()['BN_SQLITE'] ?? ''));
     if (is_file($flag)) {
-        try { $db->query('SELECT 1 FROM bn_secrets LIMIT 1'); return; } catch (PDOException $e) { /* tables missing: create them */ }
+        try { $db->query('SELECT 1 FROM bn_sessions LIMIT 1'); return; } catch (PDOException $e) { /* tables missing: create them */ }
     }
     $sqlite = bn_is_sqlite($db);
     $text = $sqlite ? 'TEXT' : 'LONGTEXT';
@@ -127,6 +127,8 @@ function bn_schema(PDO $db): void {
         "CREATE TABLE IF NOT EXISTS bn_totp (user_id VARCHAR(40) NOT NULL PRIMARY KEY, secret VARCHAR(64) NOT NULL, enabled SMALLINT NOT NULL DEFAULT 0, last_step BIGINT NOT NULL DEFAULT 0, recovery TEXT)$engine",
         "CREATE TABLE IF NOT EXISTS bn_phones (phone VARCHAR(20) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, created BIGINT NOT NULL)$engine",
         "CREATE TABLE IF NOT EXISTS bn_secrets (k VARCHAR(60) NOT NULL PRIMARY KEY, v TEXT)$engine",
+        "CREATE TABLE IF NOT EXISTS bn_sessions (id VARCHAR(128) NOT NULL PRIMARY KEY, data $text, expires BIGINT NOT NULL)$engine",
+        "CREATE TABLE IF NOT EXISTS bn_google (sub VARCHAR(64) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, created BIGINT NOT NULL)$engine",
         "CREATE TABLE IF NOT EXISTS bn_assets (id VARCHAR(40) NOT NULL PRIMARY KEY, user_id VARCHAR(40) NOT NULL, file VARCHAR(255) NOT NULL, mime VARCHAR(100) NOT NULL, size BIGINT NOT NULL, created BIGINT NOT NULL)$engine",
     ];
     foreach ($stmts as $s) $db->exec($s);
@@ -138,8 +140,51 @@ function bn_schema(PDO $db): void {
 
 function bn_now(): int { return (int) floor(microtime(true) * 1000); }
 
+/**
+ * Sign-ins are kept in the database, not in the server's temp files: hosting companies clean temp
+ * files out after about 24 minutes, which signed people out mid-visit even though their cookie said 60 days.
+ */
+final class BnSessions implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface {
+    private const LIFE = 60 * 86400;
+    private array $seen = [];
+    public function open(string $path, string $name): bool { return true; }
+    public function close(): bool { return true; }
+    private function row(string $id): ?array {
+        $st = bn_db()->prepare('SELECT data, expires FROM bn_sessions WHERE id = ?');
+        $st->execute([$id]);
+        $r = $st->fetch();
+        return $r && (int) $r['expires'] > time() ? $r : null;
+    }
+    public function read(string $id): string|false {
+        $r = $this->row($id);
+        $this->seen[$id] = $r ? [(string) $r['data'], (int) $r['expires']] : null;
+        return $r ? (string) $r['data'] : '';
+    }
+    public function write(string $id, string $data): bool {
+        $exp = time() + self::LIFE;
+        $old = $this->seen[$id] ?? null;
+        // skip the write when nothing changed and the expiry was pushed out within the last day
+        if ($old && $old[0] === $data && $old[1] > $exp - 86400) return true;
+        if ($data === '' && !$old) return true; // never store empty sessions for signed-out visitors
+        $db = bn_db();
+        $st = $db->prepare('UPDATE bn_sessions SET data = ?, expires = ? WHERE id = ?');
+        $st->execute([$data, $exp, $id]);
+        if ($st->rowCount() === 0 && !$old) {
+            try { $db->prepare('INSERT INTO bn_sessions (id, data, expires) VALUES (?, ?, ?)')->execute([$id, $data, $exp]); } catch (PDOException $e) { /* written by a parallel request */ }
+        }
+        return true;
+    }
+    public function destroy(string $id): bool { bn_db()->prepare('DELETE FROM bn_sessions WHERE id = ?')->execute([$id]); return true; }
+    public function gc(int $max): int|false { $st = bn_db()->prepare('DELETE FROM bn_sessions WHERE expires < ?'); $st->execute([time()]); return $st->rowCount(); }
+    public function validateId(string $id): bool { return $this->row($id) !== null; }
+    public function updateTimestamp(string $id, string $data): bool { return $this->write($id, $data); }
+}
+
 function bn_session(): void {
     if (session_status() === PHP_SESSION_ACTIVE) return;
+    session_set_save_handler(new BnSessions(), true);
+    ini_set('session.gc_probability', '1');
+    ini_set('session.gc_divisor', '1000');
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     session_name('bn_sess');
     session_set_cookie_params(['lifetime' => 60 * 60 * 24 * 60, 'path' => '/', 'secure' => $https, 'httponly' => true, 'samesite' => 'Lax']);
@@ -674,6 +719,53 @@ function bn_create_account(string $name, string $email, string $hash, ?string $p
     return $id;
 }
 
+/* ---------- Sign in with Google (Google Identity Services ID tokens, checked against Google's public keys) ---------- */
+function bn_google_client(): string { return bn_secret('google_on') === '1' ? bn_secret('google_client_id') : ''; }
+function bn_b64url(string $s): string { return (string) base64_decode(strtr($s, '-_', '+/') . str_repeat('=', (4 - strlen($s) % 4) % 4)); }
+/** DER-encodes an RSA public key (modulus n, exponent e) as a PEM that openssl understands. */
+function bn_rsa_pem(string $n, string $e): string {
+    $len = function (int $l): string { if ($l < 128) return chr($l); $b = ltrim(pack('N', $l), "\0"); return chr(0x80 | strlen($b)) . $b; };
+    $int = function (string $x) use ($len): string { if (ord($x[0]) > 0x7f) $x = "\0" . $x; return "\x02" . $len(strlen($x)) . $x; };
+    $rsa = $int($n) . $int($e); $rsa = "\x30" . $len(strlen($rsa)) . $rsa;
+    $bits = "\x03" . $len(strlen($rsa) + 1) . "\0" . $rsa;
+    $alg = "\x30\x0d\x06\x09\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01\x05\x00";
+    $spki = "\x30" . $len(strlen($alg . $bits)) . $alg . $bits;
+    return "-----BEGIN PUBLIC KEY-----\n" . chunk_split(base64_encode($spki), 64, "\n") . "-----END PUBLIC KEY-----\n";
+}
+/** Google's current signing keys, cached for 6 hours (refreshed early if Google rotated them). */
+function bn_google_keys(bool $fresh = false): array {
+    $c = json_decode(bn_secret('g_jwks'), true);
+    if (!$fresh && is_array($c) && time() - (int) ($c['at'] ?? 0) < 21600) return $c['keys'] ?? [];
+    if (getenv('BN_GOOGLE_JWKS')) $body = @file_get_contents(getenv('BN_GOOGLE_JWKS'));
+    else {
+        $ch = curl_init('https://www.googleapis.com/oauth2/v3/certs');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
+        $body = curl_exec($ch); curl_close($ch);
+    }
+    $j = json_decode((string) $body, true);
+    if (!is_array($j) || empty($j['keys'])) return is_array($c) ? ($c['keys'] ?? []) : [];
+    bn_secret_set('g_jwks', json_encode(['at' => time(), 'keys' => $j['keys']]));
+    return $j['keys'];
+}
+/** Checks a Google ID token. Returns its claims, or null if it isn't a genuine, current token for this site. */
+function bn_google_verify(string $jwt, string $clientId): ?array {
+    $p = explode('.', $jwt);
+    if (count($p) !== 3 || $clientId === '') return null;
+    $h = json_decode(bn_b64url($p[0]), true); $c = json_decode(bn_b64url($p[1]), true);
+    if (!is_array($h) || !is_array($c) || ($h['alg'] ?? '') !== 'RS256') return null;
+    $kid = (string) ($h['kid'] ?? '');
+    $find = function (array $keys) use ($kid) { foreach ($keys as $k) if (($k['kid'] ?? '') === $kid && ($k['kty'] ?? '') === 'RSA') return $k; return null; };
+    $k = $find(bn_google_keys());
+    if (!$k && time() - (int) (json_decode(bn_secret('g_jwks'), true)['at'] ?? 0) > 300) $k = $find(bn_google_keys(true));
+    if (!$k) return null;
+    if (openssl_verify($p[0] . '.' . $p[1], bn_b64url($p[2]), bn_rsa_pem(bn_b64url($k['n']), bn_b64url($k['e'])), OPENSSL_ALGO_SHA256) !== 1) return null;
+    $now = time();
+    if (!in_array($c['iss'] ?? '', ['accounts.google.com', 'https://accounts.google.com'], true)) return null;
+    if (($c['aud'] ?? '') !== $clientId || (int) ($c['exp'] ?? 0) < $now - 60 || (int) ($c['iat'] ?? 0) > $now + 300) return null;
+    if (empty($c['sub']) || empty($c['email']) || ($c['email_verified'] ?? false) !== true && ($c['email_verified'] ?? '') !== 'true') return null;
+    return $c;
+}
+
 /* ---------- removing the unused Laravel starter app Cloudways installed next to the site ---------- */
 const BN_LARAVEL_LEFTOVERS = ['app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources', 'routes', 'storage', 'tests', 'vendor', 'node_modules',
     'artisan', 'composer.json', 'composer.lock', 'package.json', 'package-lock.json', 'phpunit.xml', 'vite.config.js', 'postcss.config.js', 'tailwind.config.js',
@@ -830,7 +922,7 @@ case 'me':
     bn_session();
     bn_json(['me' => $me ? ['id' => $me['id'], 'name' => $me['name'], 'email' => $me['email'], 'admin' => $me['is_admin'], 'mfa' => bn_mfa_on($me['id'])] : null,
         'pending_2fa' => !$me && !empty($_SESSION['mfa_uid']) && time() - (int) ($_SESSION['mfa_at'] ?? 0) < 600,
-        'sms_signup' => bn_sms_ready(), 'now' => bn_now()]);
+        'sms_signup' => bn_sms_ready(), 'google' => bn_google_client() ?: null, 'now' => bn_now()]);
 
 case 'register':
     if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
@@ -906,6 +998,49 @@ case 'login':
     if (in_array(bn_member_status($u['id']), ['Deactivated', 'Banned'], true)) bn_fail('blocked', 'This account is turned off. Contact the site team for help.', 403);
     if (password_needs_rehash($u['pass'], PASSWORD_DEFAULT)) bn_db()->prepare('UPDATE bn_users SET pass = ? WHERE id = ?')->execute([password_hash((string) $b['password'], PASSWORD_DEFAULT), $u['id']]);
     bn_login_finish($u['id']);
+
+case 'google_login':
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    bn_throttle('glogin:' . bn_ip(), 20, 900);
+    $cid = bn_google_client();
+    if ($cid === '') bn_fail('off', 'Google sign-in isn\'t turned on.', 400);
+    $c = bn_google_verify((string) (bn_body()['credential'] ?? ''), $cid);
+    if (!$c) bn_fail('bad_google', 'Google sign-in didn\'t work. Please try again.', 401);
+    $sub = substr((string) $c['sub'], 0, 64); $email = strtolower(trim((string) $c['email']));
+    $db = bn_db(); $new = false;
+    $st = $db->prepare('SELECT user_id FROM bn_google WHERE sub = ?'); $st->execute([$sub]);
+    $uid = (string) ($st->fetchColumn() ?: '');
+    if ($uid === '') {
+        // same verified email as an existing account: link them, so both ways sign in to one account
+        $st = $db->prepare('SELECT id FROM bn_users WHERE email = ?'); $st->execute([$email]);
+        $uid = (string) ($st->fetchColumn() ?: '');
+        if ($uid === '') {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 200) bn_fail('invalid', 'That Google account has no usable email address.');
+            bn_throttle('reg:' . bn_ip(), 8, 3600);
+            $name = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($c['name'] ?? ''))));
+            if (mb_strlen($name) < 2) $name = ucfirst(explode('@', $email)[0]);
+            $uid = bn_create_account(mb_substr($name, 0, 60), $email, password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT), null);
+            $new = true;
+        }
+        $db->prepare('INSERT INTO bn_google (sub, user_id, created) VALUES (?, ?, ?)')->execute([$sub, $uid, bn_now()]);
+    }
+    if (in_array(bn_member_status($uid), ['Deactivated', 'Banned'], true)) bn_fail('blocked', 'This account is turned off. Contact the site team for help.', 403);
+    bn_login_finish($uid, ['new' => $new]);
+
+/* Google sign-in settings (admin only). The Client ID is public by design; it goes in the sign-in button. */
+case 'google_settings':
+    $me = bn_me();
+    if (!$me || !$me['is_admin']) bn_fail('permission_denied', 'Admins only.', 403);
+    if ($method === 'POST') {
+        $b = bn_body();
+        $id = trim((string) ($b['client_id'] ?? ''));
+        if ($id !== '' && !preg_match('/^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/', $id)) bn_fail('invalid', 'The Client ID ends in .apps.googleusercontent.com. Copy the whole thing from Google Cloud.');
+        if ($id !== '') bn_secret_set('google_client_id', $id);
+        $on = !empty($b['on']);
+        if ($on && bn_secret('google_client_id') === '') bn_fail('invalid', 'Paste your Client ID before turning this on.');
+        bn_secret_set('google_on', $on ? '1' : '0');
+    }
+    bn_json(['on' => bn_secret('google_on') === '1', 'client_id' => bn_secret('google_client_id'), 'origin' => 'https://' . ($_SERVER['HTTP_HOST'] ?? '')]);
 
 case 'login_2fa':
     if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);

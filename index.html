@@ -1294,6 +1294,12 @@ module.exports = QRCode;
     }
     return fetch(url, init).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.status === 401 && ME && j.error && j.error.code === "unauthenticated") {
+          // the page thought you were signed in but the server says no: ask to sign in again instead of a confusing error
+          ME = null; window.BN_ME = null;
+          setTimeout(function () { if (!document.getElementById("bnAuth")) open("signin", "Your sign-in timed out. Please sign in again to keep going."); }, 0);
+          throw err("unauthenticated", "Your sign-in timed out. Please sign in again.");
+        }
         if (!r.ok || j.error) throw err((j.error && j.error.code) || "http_" + r.status, (j.error && j.error.message) || "Request failed");
         return j;
       });
@@ -1301,9 +1307,9 @@ module.exports = QRCode;
   }
 
   /* ---------------- who is signed in ---------------- */
-  var ME = null, SINCE = 0, SMS = false, PEND = false, OWNER = /^#owner-reset$/.test(location.hash);
+  var ME = null, SINCE = 0, SMS = false, PEND = false, GOOGLE = "", OWNER = /^#owner-reset$/.test(location.hash);
   window.addEventListener("hashchange", function () { if (/^#owner-reset$/.test(location.hash)) ownerReset(); });
-  var meReady = call("me").then(function (j) { ME = j.me; SMS = !!j.sms_signup; PEND = !!j.pending_2fa; SINCE = j.now || Date.now(); window.BN_ME = ME; return ME; })
+  var meReady = call("me").then(function (j) { ME = j.me; SMS = !!j.sms_signup; GOOGLE = j.google || ""; PEND = !!j.pending_2fa; SINCE = j.now || Date.now(); window.BN_ME = ME; return ME; })
     .catch(function () { ME = null; window.BN_ME = null; return null; });
   window.BN_READY = meReady;
 
@@ -1444,6 +1450,8 @@ module.exports = QRCode;
     ".bna .rec{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 0;font:600 14px ui-monospace,Menlo,monospace}.bna .rec span{padding:6px;border-radius:6px;background:#f4f4f2;text-align:center}",
     ".bna .ghost{width:100%;margin-top:10px;padding:11px;border:1px solid #d4d5d9;border-radius:10px;background:#fff;color:#111;font:inherit;font-weight:600;cursor:pointer}",
     ".bna .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}.bna .badge.on{background:#eaf7ef;color:#1a6b3c}.bna .badge.off{background:#f1f1ef;color:#5f636b}",
+    ".bna .bna-g{display:flex;justify-content:center;min-height:44px;margin:4px 0 0}.bna .bna-g:empty{display:none}",
+    ".bna .bna-or{display:flex;align-items:center;gap:10px;margin:14px 0 2px;color:#7a7e86;font-size:13px}.bna .bna-or:before,.bna .bna-or:after{content:'';flex:1;height:1px;background:#e3e4e7}",
     ".bna .chk{display:flex;gap:8px;align-items:flex-start;margin-top:14px;font-size:14px}.bna .chk input{width:auto;margin-top:3px}"
   ].join("");
   var styled = false;
@@ -1455,13 +1463,13 @@ module.exports = QRCode;
     var scrim = document.createElement("div");
     scrim.className = "bna-scrim"; scrim.id = "bnAuth";
     var forms = {
-      signin: '<h2>Sign in</h2><p class="sub">' + esc(note || "Welcome back to The Big Nickel.") + '</p>' +
+      signin: '<h2>Sign in</h2><p class="sub">' + esc(note || "Welcome back to The Big Nickel.") + '</p>' + (GOOGLE ? '<div class="bna-g" data-g></div><div class="bna-or">or use your email</div>' : '') +
         '<form data-m="signin"><label for="bnaE">Email</label><input id="bnaE" name="email" type="email" autocomplete="email" required>' +
         '<label for="bnaP">Password</label><input id="bnaP" name="password" type="password" autocomplete="current-password" required minlength="8">' +
         '<div class="row"><button type="button" class="lnk" data-go="forgot">Forgot password?</button></div>' +
         '<div class="bna-msg" hidden></div><button class="go" type="submit">Sign in</button></form>' +
         '<div class="alt">New here? <button type="button" data-go="join">Create a free account</button></div>',
-      join: '<h2>Create your account</h2><p class="sub">' + esc(note || "Free to join. Buy, sell and connect with neighbors.") + '</p>' +
+      join: '<h2>Create your account</h2><p class="sub">' + esc(note || "Free to join. Buy, sell and connect with neighbors.") + '</p>' + (GOOGLE ? '<div class="bna-g" data-g></div><div class="bna-or">or use your email</div>' : '') +
         '<form data-m="join"><label for="bnaN">Your name</label><input id="bnaN" name="name" autocomplete="name" required minlength="2" maxlength="60">' +
         '<label for="bnaE">Email</label><input id="bnaE" name="email" type="email" autocomplete="email" required>' +
         '<label for="bnaP">Password</label><input id="bnaP" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters">' +
@@ -1488,7 +1496,8 @@ module.exports = QRCode;
     scrim.innerHTML = '<div class="bna" role="dialog" aria-modal="true" aria-labelledby="bnaT"><button class="x" type="button" aria-label="Close" data-x>&times;</button>' + forms[mode] + "</div>";
     scrim.querySelector("h2").id = "bnaT";
     document.body.appendChild(scrim);
-    var first = scrim.querySelector("input:not([type=hidden])"); if (first) setTimeout(function () { first.focus(); }, 30);
+    var first = scrim.querySelector("input:not([type=hidden])"); if (first && !GOOGLE) setTimeout(function () { first.focus(); }, 30);
+    var gs = scrim.querySelector("[data-g]"); if (gs) googleButton(gs, mode === "join" ? "signup_with" : "signin_with");
     scrim.addEventListener("click", function (e) {
       if (e.target === scrim || e.target.closest("[data-x]")) { close(); return; }
       var g = e.target.closest("[data-go]"); if (g) open(g.getAttribute("data-go"));
@@ -1517,6 +1526,33 @@ module.exports = QRCode;
     });
   }
   function close() { var s = document.getElementById("bnAuth"); if (s) s.remove(); }
+
+  /* ---------------- Sign in with Google (Google's own button; the server checks the result) ---------------- */
+  var gLoad = null, gInit = false;
+  function googleLib() {
+    if (window.google && google.accounts && google.accounts.id) return Promise.resolve();
+    if (!gLoad) gLoad = new Promise(function (ok, bad) {
+      var sc = document.createElement("script"); sc.src = "https://accounts.google.com/gsi/client"; sc.async = true;
+      sc.onload = ok; sc.onerror = function () { gLoad = null; bad(); }; document.head.appendChild(sc);
+    });
+    return gLoad;
+  }
+  function googleDone(r) {
+    var box = document.querySelector("#bnAuth .bna-msg");
+    call("google_login", { method: "POST", body: { credential: r && r.credential } }).then(function (j) {
+      if (j && j.need_2fa) { open("code2fa"); return; }
+      var h = location.hash.indexOf("#reset=") === 0 ? "#home" : location.hash;
+      location.replace(location.pathname + location.search + h);
+      location.reload();
+    }, function (x) { if (box) { box.className = "bna-msg bad"; box.textContent = x.message || "Google sign-in didn't work. Please try again."; box.hidden = false; } });
+  }
+  function googleButton(el, text) {
+    googleLib().then(function () {
+      if (!gInit) { google.accounts.id.initialize({ client_id: GOOGLE, callback: googleDone, ux_mode: "popup", auto_select: false, cancel_on_tap_outside: true }); gInit = true; }
+      if (!el.isConnected) return;
+      google.accounts.id.renderButton(el, { type: "standard", theme: "outline", size: "large", shape: "pill", text: text, logo_alignment: "left", width: Math.min(360, Math.max(220, el.clientWidth || 320)) });
+    }, function () { el.remove(); var o = document.querySelector("#bnAuth .bna-or"); if (o) o.remove(); });
+  }
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
 
   /* ---------------- panels: two-step sign-in, and text-code settings for the admin ---------------- */
@@ -1591,6 +1627,23 @@ module.exports = QRCode;
       });
     }, function () {});
   }
+  function googleSettings() {
+    if (!ME || !ME.admin) return;
+    call("google_settings").then(function (j) {
+      var b = panel('<h2>Sign in with Google</h2><p class="sub">Adds a "Continue with Google" button to sign-in and sign-up. Free from Google. Members who join this way skip the password and the text code.</p>' +
+        '<ol><li>Go to <b>console.cloud.google.com</b>, make a project, then open <b>APIs &amp; Services &rarr; OAuth consent screen</b>. Choose <b>External</b>, app name <b>The Big Nickel</b>, your support email, then publish it.</li><li>Open <b>Credentials</b>.</li><li><b>Create credentials &rarr; OAuth client ID</b>, type <b>Web application</b>.</li><li>Under <b>Authorized JavaScript origins</b> add <code class="key" style="display:inline;padding:2px 6px">' + esc(j.origin) + '</code></li><li>Copy the <b>Client ID</b> and paste it here.</li></ol>' +
+        '<form data-p="google"><label for="bnaG1">Client ID</label><input id="bnaG1" name="client_id" autocomplete="off" spellcheck="false" value="' + esc(j.client_id) + '" placeholder="1234\u2026apps.googleusercontent.com">' +
+        '<label class="chk"><input type="checkbox" name="on"' + (j.on ? " checked" : "") + '> <span>Show the Google button</span></label>' +
+        '<div class="bna-msg" hidden></div><button class="go" type="submit">Save</button></form>' +
+        '<p class="fine">You don\'t need the Client Secret. If Google shows it, leave it out.</p>');
+      b.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault(); var f = e.target, btn = f.querySelector(".go"); btn.disabled = true;
+        call("google_settings", { method: "POST", body: { client_id: f.client_id.value.trim(), on: f.on.checked } }).then(function (k) {
+          btn.disabled = false; GOOGLE = k.on ? k.client_id : ""; gInit = false; msg(b, k.on ? "Saved. The Google button is on. Sign out to try it." : "Saved. The Google button is off.", true);
+        }, function (x) { btn.disabled = false; msg(b, x.message); });
+      });
+    }, function () {});
+  }
   function ownerReset() {
     var b = panel('<h2>Owner recovery</h2><p class="sub">Sets a new email and password for the site owner\'s admin account. You need the owner key you put in <b>owner-key.php</b>.</p>' +
       '<form data-p="owner"><label for="bnaK">Owner key</label><input id="bnaK" name="key" type="password" autocomplete="off" required minlength="16">' +
@@ -1624,14 +1677,14 @@ module.exports = QRCode;
     }, function () {});
   }
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms],[data-bnclean]");
+    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms],[data-bnclean],[data-bngoogle]");
     if (!t) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if (t.matches("[data-bnsec]")) security(); else if (t.matches("[data-bnclean]")) cleanup(); else smsSettings();
+    if (t.matches("[data-bnsec]")) security(); else if (t.matches("[data-bnclean]")) cleanup(); else if (t.matches("[data-bngoogle]")) googleSettings(); else smsSettings();
   }, true);
 
   function signOut() { call("logout", { method: "POST" }).then(function () { location.reload(); }, function () { location.reload(); }); }
-  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings, cleanup: cleanup, ownerReset: ownerReset };
+  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings, googleSettings: googleSettings, cleanup: cleanup, ownerReset: ownerReset };
 
   /* signed-out visitors: account button, Sell and the dashboard ask them to sign in first */
   document.addEventListener("click", function (e) {
@@ -4775,7 +4828,7 @@ function vBizDetail(sl){
   const city=bizCity(b), hl=(b.highlights||[]).filter(h=>h&&h[0]), st=(b.stats||[]).filter(x=>x&&x[0]), svc=b.services||[];
   const IC=(n,sz=18)=>ico(n,"i",`width:${sz}px;height:${sz}px`), tel=(b.ph||"").replace(/[^\d+]/g,"");
   const hh=bizHasHours(b), open=hh&&bizOpenNow(b), PS=placeStats(b.slug), R=allReviews().filter(r=>r.place===b.slug).sort((a,c)=>c.rating-a.rating||c.ts-a.ts).slice(0,3);
-  const editBtn=ADS.admin?`<button class="bw-nav-edit" type="button" data-bizedit="${b.slug}">${IC("gear",15)}<span>Edit business</span></button>`:"";
+  const editBtn=ADS.admin?`<button class="bw-nav-edit" type="button" data-bizedit="${b.slug}" aria-label="Edit business" title="Edit business">${IC("gear",15)}<span>Edit business</span></button>`:"";
   const fb=b.fb?`<a href="${esc(b.fb)}" target="_blank" rel="noopener" aria-label="${esc(b.n)} on Facebook">${IC("fb",18)}</a>`:"";
   const shareBtns=[["Facebook","https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url)],["X","https://x.com/intent/tweet?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(b.n+" on The Big Nickel")],["LinkedIn","https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(url)],["Reddit","https://www.reddit.com/submit?url="+encodeURIComponent(url)+"&title="+encodeURIComponent(b.n+" on The Big Nickel")]];
   const aboutImg=(gal.find(g=>g.featured)||gal[0]||{}).url||b.cover||"";
@@ -6157,7 +6210,7 @@ function acctMenuHTML(){
     ${it("#dashboard","chart","My Dashboard","overview")}
     ${grp("sell","tag","Buying &amp; selling",[it("#dashboard","list","My listings","listings"),it("#import","upload","Bulk import"),it("#dashboard","gavel","Auctions &amp; bids","auctions"),it("#dashboard","cart","Purchases","purchases",purch),it("#dashboard","cash","Sales &amp; payouts","sales"),it("#dashboard","star","Featured &amp; plans","plans")],purch)}
     ${grp("comm","user","Community",[it("#social","user","Clubs &amp; Groups"),it("#social--new","plus","Create a group"),it("#dashboard","news","My blog posts","posts")])}
-    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`,`<a href="#dashboard" data-bnclean role="menuitem">${ico("shield","i","width:18px;height:18px")}Server cleanup</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
+    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`,`<a href="#dashboard" data-bngoogle role="menuitem">${ico("user","i","width:18px;height:18px")}Sign in with Google</a>`,`<a href="#dashboard" data-bnclean role="menuitem">${ico("shield","i","width:18px;height:18px")}Server cleanup</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
     ${ADS.admin?grp("admin","shield","Admin",[it("#admin-approvals","shield","Approvals",null,apN),it("#admin-users","user","Users",null,upend),it("#admin-ads","folder","Ads",null,pend),it("#admin-inbox","mail","Inbox",null,inbox),it("#admin-posts","news","Blog posts",null,postsN),it("#admin-orders","cart","Shop orders",null,ordN),it("#admin-media","grid","Media"),it("#businesses","store","Businesses")],apN+upend+pend+inbox+ordN,"admin"):""}`;
 }
 function setAcct(open){const m=$("#acctMenu"),b=$("#acctBtn");if(!m)return;if(open)m.innerHTML=acctMenuHTML();m.hidden=!open;b.setAttribute("aria-expanded",open)}
