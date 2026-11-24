@@ -1644,6 +1644,18 @@ module.exports = QRCode;
       });
     }, function () {});
   }
+  function mailTest() {
+    if (!ME || !ME.admin) return;
+    var b = panel('<h2>Test site email</h2><p class="sub">Sends a test message to <b>' + esc(ME.email) + '</b> the same way password-reset emails are sent. It should arrive within a minute or two. Check your spam folder too.</p>' +
+      '<div class="bna-msg" hidden></div><button class="go" type="button" data-send>Send test email</button>');
+    b.querySelector("[data-send]").addEventListener("click", function (e) {
+      e.target.disabled = true;
+      call("mail_test", { method: "POST", body: {} }).then(function (j) {
+        msg(b, "Sent from " + j.from + " to " + j.to + ". If it doesn't arrive in a few minutes (and isn't in spam), the email setup in Cloudways needs finishing.", true);
+        setTimeout(function () { e.target.disabled = false; }, 15000);
+      }, function (x) { e.target.disabled = false; msg(b, x.message); });
+    });
+  }
   function ownerReset() {
     var b = panel('<h2>Owner recovery</h2><p class="sub">Sets a new email and password for the site owner\'s admin account. You need the owner key you put in <b>owner-key.php</b>.</p>' +
       '<form data-p="owner"><label for="bnaK">Owner key</label><input id="bnaK" name="key" type="password" autocomplete="off" required minlength="16">' +
@@ -1677,14 +1689,14 @@ module.exports = QRCode;
     }, function () {});
   }
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms],[data-bnclean],[data-bngoogle]");
+    var t = e.target.closest && e.target.closest("[data-bnsec],[data-bnsms],[data-bnclean],[data-bngoogle],[data-bnmail]");
     if (!t) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if (t.matches("[data-bnsec]")) security(); else if (t.matches("[data-bnclean]")) cleanup(); else if (t.matches("[data-bngoogle]")) googleSettings(); else smsSettings();
+    if (t.matches("[data-bnsec]")) security(); else if (t.matches("[data-bnclean]")) cleanup(); else if (t.matches("[data-bngoogle]")) googleSettings(); else if (t.matches("[data-bnmail]")) mailTest(); else smsSettings();
   }, true);
 
   function signOut() { call("logout", { method: "POST" }).then(function () { location.reload(); }, function () { location.reload(); }); }
-  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings, googleSettings: googleSettings, cleanup: cleanup, ownerReset: ownerReset };
+  window.BN_AUTH = { open: open, signOut: signOut, security: security, smsSettings: smsSettings, googleSettings: googleSettings, mailTest: mailTest, cleanup: cleanup, ownerReset: ownerReset };
 
   /* signed-out visitors: account button, Sell and the dashboard ask them to sign in first */
   document.addEventListener("click", function (e) {
@@ -1924,6 +1936,7 @@ main{min-height:60vh}
 .gal-own-note{display:flex;gap:6px;align-items:center;margin:4px 0 0;font-size:13px}
 .gal-view{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:24px;padding:24px}@media (max-width:700px){.gal-view{padding:16px;gap:16px}}.gal-view-b{padding:4px 6px 4px 0}.gal-view-img{background:#111;border-radius:8px;overflow:hidden;display:grid;place-items:center;max-height:78vh}.gal-view-img img{max-width:100%;max-height:78vh;display:block;object-fit:contain}
 .gal-view-b{display:flex;flex-direction:column;gap:12px;min-width:0;max-height:78vh;overflow:auto;padding-right:4px}.gal-view-b h2{margin:0}
+.gal-view-b>*{flex-shrink:0}
 .gal-rev-form{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:8px;padding:12px}.gal-revs{display:flex;flex-direction:column;gap:10px}.gal-rev{border-top:1px solid var(--line);padding-top:10px}.gal-rev p{margin:4px 0}
 .ap-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.ap-photo{display:block;border-radius:6px;overflow:hidden;aspect-ratio:4/3;background:var(--line)}.ap-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .modal:has(.gal-view){max-width:min(1100px,96vw);width:100%}
@@ -6210,7 +6223,7 @@ function acctMenuHTML(){
     ${it("#dashboard","chart","My Dashboard","overview")}
     ${grp("sell","tag","Buying &amp; selling",[it("#dashboard","list","My listings","listings"),it("#import","upload","Bulk import"),it("#dashboard","gavel","Auctions &amp; bids","auctions"),it("#dashboard","cart","Purchases","purchases",purch),it("#dashboard","cash","Sales &amp; payouts","sales"),it("#dashboard","star","Featured &amp; plans","plans")],purch)}
     ${grp("comm","user","Community",[it("#social","user","Clubs &amp; Groups"),it("#social--new","plus","Create a group"),it("#dashboard","news","My blog posts","posts")])}
-    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`,`<a href="#dashboard" data-bngoogle role="menuitem">${ico("user","i","width:18px;height:18px")}Sign in with Google</a>`,`<a href="#dashboard" data-bnclean role="menuitem">${ico("shield","i","width:18px;height:18px")}Server cleanup</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
+    ${grp("acct","gear","Account",[it("#dashboard","user","Profile &amp; contact","profile"),it("#dashboard","gear","Account settings","settings")].concat(window.BN_AUTH&&window.BN_ME?[`<a href="#dashboard" data-bnsec role="menuitem">${ico("lock","i","width:18px;height:18px")}Two-step sign-in${window.BN_ME.mfa?' <small style="color:#1a6b3c;font-weight:700">On</small>':""}</a>`].concat(window.BN_ME.admin?[`<a href="#dashboard" data-bnsms role="menuitem">${ico("phone","i","width:18px;height:18px")}Text codes for sign-ups</a>`,`<a href="#dashboard" data-bngoogle role="menuitem">${ico("user","i","width:18px;height:18px")}Sign in with Google</a>`,`<a href="#dashboard" data-bnmail role="menuitem">${ico("mail","i","width:18px;height:18px")}Test site email</a>`,`<a href="#dashboard" data-bnclean role="menuitem">${ico("shield","i","width:18px;height:18px")}Server cleanup</a>`]:[]).concat([`<a href="#home" data-signout role="menuitem">${ico("x","i","width:18px;height:18px")}Sign out</a>`]):[]))}
     ${ADS.admin?grp("admin","shield","Admin",[it("#admin-approvals","shield","Approvals",null,apN),it("#admin-users","user","Users",null,upend),it("#admin-ads","folder","Ads",null,pend),it("#admin-inbox","mail","Inbox",null,inbox),it("#admin-posts","news","Blog posts",null,postsN),it("#admin-orders","cart","Shop orders",null,ordN),it("#admin-media","grid","Media"),it("#businesses","store","Businesses")],apN+upend+pend+inbox+ordN,"admin"):""}`;
 }
 function setAcct(open){const m=$("#acctMenu"),b=$("#acctBtn");if(!m)return;if(open)m.innerHTML=acctMenuHTML();m.hidden=!open;b.setAttribute("aria-expanded",open)}

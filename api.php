@@ -719,6 +719,14 @@ function bn_create_account(string $name, string $email, string $hash, ?string $p
     return $id;
 }
 
+/* ---------- outgoing email (goes through the server's mail setup; on Cloudways, the SMTP add-on) ---------- */
+function bn_mail(string $to, string $subject, string $body): bool {
+    if (!function_exists('mail')) return false;
+    $from = bn_config()['BN_MAIL_FROM'] ?? 'service@thebignickel.biz';
+    $h = "From: The Big Nickel <$from>\r\nReply-To: $from\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
+    return @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $h, '-f' . $from);
+}
+
 /* ---------- Sign in with Google (Google Identity Services ID tokens, checked against Google's public keys) ---------- */
 function bn_google_client(): string { return bn_secret('google_on') === '1' ? bn_secret('google_client_id') : ''; }
 function bn_b64url(string $s): string { return (string) base64_decode(strtr($s, '-_', '+/') . str_repeat('=', (4 - strlen($s) % 4) % 4)); }
@@ -1028,6 +1036,15 @@ case 'google_login':
     bn_login_finish($uid, ['new' => $new]);
 
 /* Google sign-in settings (admin only). The Client ID is public by design; it goes in the sign-in button. */
+case 'mail_test':
+    $me = bn_me();
+    if (!$me || !$me['is_admin']) bn_fail('permission_denied', 'Admins only.', 403);
+    if ($method !== 'POST') bn_fail('method', 'Use POST.', 405);
+    bn_throttle('mailtest:' . $me['id'], 5, 3600);
+    $ok = bn_mail($me['email'], 'Test email from The Big Nickel', "Hi {$me['name']},\n\nThis is a test from your website. If you're reading it, password-reset emails will reach your members too.\n\nSent " . gmdate('D, j M Y H:i') . " UTC from " . ($_SERVER['HTTP_HOST'] ?? 'your site') . ".\n\nThe Big Nickel Classifieds");
+    if (!$ok) bn_fail('mail_failed', 'The server refused to send it. Turn on the SMTP add-on in Cloudways, then try again.', 502);
+    bn_json(['ok' => true, 'to' => $me['email'], 'from' => bn_config()['BN_MAIL_FROM'] ?? 'service@thebignickel.biz']);
+
 case 'google_settings':
     $me = bn_me();
     if (!$me || !$me['is_admin']) bn_fail('permission_denied', 'Admins only.', 403);
@@ -1075,7 +1092,7 @@ case 'forgot':
         $link = $site . '/#reset=' . $token;
         $from = $cfg['BN_MAIL_FROM'] ?? 'service@thebignickel.biz';
         $body = "Hi {$u['name']},\n\nSomeone asked to reset the password for your Big Nickel account. If that was you, open this link within an hour:\n\n$link\n\nIf it wasn't you, ignore this email and your password stays the same.\n\nThe Big Nickel Classifieds";
-        if (function_exists('mail')) @mail($email, 'Reset your Big Nickel password', $body, "From: The Big Nickel <$from>\r\nReply-To: $from\r\nContent-Type: text/plain; charset=UTF-8", '-f' . $from);
+        bn_mail($email, 'Reset your Big Nickel password', $body);
     }
     // same answer either way, so nobody can test which emails have accounts
     bn_json(['ok' => true]);
