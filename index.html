@@ -3322,6 +3322,45 @@ b,strong,th,dt{font-weight:500}
 .fbp-quote cite{display:block;margin-top:14px;font:500 14px var(--f-mono);color:var(--muted);font-style:normal}
 .fbp-quote:before{content:"";display:block;width:56px;height:4px;background:#c9a227;margin:0 auto 22px;border-radius:2px}
 .fbp-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.fbp-tw .fbp-timg{display:block;width:100%;max-height:520px;object-fit:cover;border-radius:14px;margin:0 0 26px}
+.fbp-split{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.fbp-split.img-r .fbp-split-img{order:2}
+.fbp-split-img img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;display:block}
+.fbp-split-b h2{font:800 clamp(24px,2.8vw,34px)/1.1 var(--f-display);margin:0 0 14px}
+.fbp-cards h2,.fbp-faq h2{font:800 clamp(22px,2.6vw,30px) var(--f-display);margin:0 0 16px}
+.fbp-cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.fbp-cgrid.n1{grid-template-columns:1fr}.fbp-cgrid.n2{grid-template-columns:1fr 1fr}
+.fbp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.fbp-card img{width:100%;aspect-ratio:16/10;object-fit:cover}
+.fbp-card-b{padding:16px}.fbp-card-b h3{margin:0 0 6px;font:700 18px var(--f-display)}.fbp-card-b p{margin:0;color:var(--muted);line-height:1.55}
+.fbp-card:not(:has(img)) .fbp-card-b{border-top:4px solid #c9a227}
+.fbp-faq{max-width:820px}
+.fbp-faq details{border-bottom:1px solid var(--line);padding:4px 0}
+.fbp-faq summary{cursor:pointer;list-style:none;padding:14px 32px 14px 0;font:600 17px var(--f-body);position:relative}
+.fbp-faq summary::-webkit-details-marker{display:none}
+.fbp-faq summary:after{content:"+";position:absolute;right:6px;top:10px;font:400 24px var(--f-body);color:#9a7b14}
+.fbp-faq details[open] summary:after{content:"\2013 "}
+.fbp-faq .fbp-prose{font-size:16px;padding:0 0 14px;color:var(--muted)}
+.fbp-ctab{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:34px 36px;border-radius:16px;background:linear-gradient(135deg,#1a1405,#3a2d0a);color:#e9e2c8}
+.fbp-ctab h2{margin:0;color:#fff;font:800 clamp(22px,2.8vw,32px) var(--f-display)}.fbp-ctab p{margin:8px 0 0;font-size:16px}
+.fbp-ctab .btn{padding:14px 24px;font-size:16px;flex:none;background:#c9a227;color:#1a1405;border-color:#c9a227}
+@media (max-width:720px){.fbp-split{grid-template-columns:1fr;gap:16px}.fbp-split.img-r .fbp-split-img{order:0}.fbp-cgrid{grid-template-columns:1fr!important}.fbp-ctab{flex-direction:column;align-items:flex-start;padding:24px}}
+/* builder: insert points and picker */
+.fbp-ins{display:flex;justify-content:center;margin:2px 0}
+.fbp-ins-b{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px dashed var(--line);border-radius:999px;background:var(--card);color:var(--muted);font:600 13px var(--f-body);cursor:pointer}
+.fbp-ins-b:hover{border-color:#c9a227;color:var(--fg)}.fbp-ins-b .i{width:14px;height:14px}
+.fbp-ins.open{display:block}
+.fbp-pick{border:2px solid #c9a227;border-radius:12px;padding:12px;background:var(--card)}
+.fbp-pick-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.fbp-pick-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.fbp-pick-g button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);text-align:left;cursor:pointer;color:var(--fg)}
+.fbp-pick-g button:hover{border-color:#c9a227;background:var(--card)}
+.fbp-pick-g .i{width:18px;height:18px;color:#9a7b14}.fbp-pick-g b{font-size:14px}.fbp-pick-g small{font-size:12px;color:var(--muted);line-height:1.35}
+.fbp-pic-a{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fbp-pic.sm img,.fbp-pic.sm>span{width:72px}
+.fbp-sub{display:flex;flex-direction:column;gap:10px}
+.fbp-subi{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;background:var(--paper)}
+.fbp-irm{align-self:flex-end;font-size:13px;color:var(--bad)}
+
 .fbp-btns .btn{padding:14px 22px;font-size:16px}
 /* store */
 .fbp-store{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
@@ -6795,16 +6834,20 @@ const linkify=h=>h.replace(/https:\/\/[^\s<"]+/g,u=>{const t=u.match(/[.,;:!?)]+
 function textToBody(t){return String(t||"").split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean).map(chunk=>{const m=chunk.match(/^##\s*(.+?)(?:\n([\s\S]*))?$/);return m?[esc(m[1]),linkify(esc(m[2]||"")).replace(/\n/g,"<br>")]:["",linkify(esc(chunk)).replace(/\n/g,"<br>")]})}
 /* ================= FEATURED BUSINESS PAGES: section-and-block layout the business owner can edit ================= */
 const FBP_PRICE=20;
-const FBP_TYPES=[["text","Text","edit"],["photo","Photo","camera"],["gallery","Gallery","grid"],["video","Video","play"],["quote","Quote","talk"],["buttons","Buttons","tag"]];
+const FBP_TYPES=[["text","Text","edit","Heading and paragraphs, with an optional photo on top"],["split","Photo + text","camera","Photo on one side, text on the other"],["gallery","Gallery","grid","A grid of photos"],["photo","Big photo","camera","One wide photo with a caption"],["cards","Services","list","Up to 6 boxes with a photo, title and short text"],["video","Video","play","YouTube link or uploaded video"],["quote","Quote","talk","A customer review or saying"],["faq","Questions","talk","Common questions and answers"],["cta","Call to action","megaphone","A bold banner with one button"],["buttons","Buttons","tag","Up to 3 link buttons"]];
 const fbpHttps=u=>/^https:\/\/[^\s"'<>]+$/i.test(String(u||"").trim())?String(u).trim():"";
 const fbpLink=u=>{u=String(u||"").trim();if(/^tel:[+\d\s().-]{7,20}$/i.test(u)||/^mailto:[^\s"'<>@]+@[^\s"'<>]+$/i.test(u))return u;if(/^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(u))u="https://"+u;return fbpHttps(u)};
-function cleanBlocks(B){const s=(v,n)=>noTags(v==null?"":String(v)).slice(0,n);
+function cleanBlocks(B){const s=(v,n)=>noTags(v==null?"":String(v)).slice(0,n),tx=(v,n)=>typeof v==="string"?v.slice(0,n):"";
   return (Array.isArray(B)?B:[]).slice(0,40).map(b=>{b=b||{};switch(b.t){
-    case "text":return {t:"text",h:s(b.h,120),x:typeof b.x==="string"?b.x.slice(0,6000):""};
+    case "text":return {t:"text",h:s(b.h,120),x:tx(b.x,6000),img:safeUrl(b.img)};
+    case "split":return {t:"split",url:safeUrl(b.url),h:s(b.h,120),x:tx(b.x,4000),side:b.side==="right"?"right":"left"};
     case "photo":return {t:"photo",url:safeUrl(b.url),cap:s(b.cap,200),wide:b.wide!==false};
-    case "gallery":return {t:"gallery",h:s(b.h,120),imgs:(Array.isArray(b.imgs)?b.imgs:[]).slice(0,24).map(x=>({url:safeUrl(x&&x.url),cap:s(x&&x.cap,200)})).filter(x=>x.url)};
+    case "gallery":return {t:"gallery",h:s(b.h,120),imgs:(Array.isArray(b.imgs)?b.imgs:[]).slice(0,30).map(x=>({url:safeUrl(x&&x.url),cap:s(x&&x.cap,200)})).filter(x=>x.url)};
+    case "cards":return {t:"cards",h:s(b.h,120),items:(Array.isArray(b.items)?b.items:[]).slice(0,6).map(x=>({img:safeUrl(x&&x.img),title:s(x&&x.title,80),text:s(x&&x.text,400)}))};
     case "video":{const yt=/^[A-Za-z0-9_-]{11}$/.test(b.yt||"")?b.yt:"";return {t:"video",yt,url:yt?"":safeUrl(b.url),cap:s(b.cap,200)}}
     case "quote":return {t:"quote",x:s(b.x,600),who:s(b.who,80)};
+    case "faq":return {t:"faq",h:s(b.h,120),items:(Array.isArray(b.items)?b.items:[]).slice(0,12).map(x=>({q:s(x&&x.q,200),a:s(x&&x.a,1500)}))};
+    case "cta":return {t:"cta",h:s(b.h,120),x:s(b.x,400),label:s(b.label,40),url:String(b.url||"").slice(0,300)};
     case "buttons":return {t:"buttons",items:(Array.isArray(b.items)?b.items:[]).slice(0,4).map(x=>({label:s(x&&x.label,40),url:String(x&&x.url||"").slice(0,300)}))};
     default:return null}}).filter(Boolean)}
 function cleanStore(L){const s=(v,n)=>noTags(v==null?"":String(v)).trim().slice(0,n);return (Array.isArray(L)?L:[]).slice(0,60).map(x=>({name:s(x&&x.name,80),price:s(x&&x.price,20),img:safeUrl(x&&x.img),desc:s(x&&x.desc,500),link:String(x&&x.link||"").slice(0,300)}))}
@@ -6832,12 +6875,16 @@ function fbpEntitled(){if(ADS.admin)return true;const me=meId();if(me&&FBP_GRANT
 function fbpGrantsLoad(){if(ADS.mode==="live"&&ADS.db)ADS.db.doc("settings/bizpages").onSnapshot(sn=>{const g=(sn.exists?sn.data():{}).grants;FBP_GRANTS=g&&typeof g==="object"?g:{}},()=>{});else{const g=(store.get("bizpages",{})||{}).grants;FBP_GRANTS=g&&typeof g==="object"?g:{}}}
 async function fbpGrant(uid,on){const g=Object.assign({},FBP_GRANTS);if(on)g[uid]=true;else delete g[uid];if(ADS.mode==="live")await ADS.db.doc("settings/bizpages").set({grants:g});else store.set("bizpages",{grants:g});FBP_GRANTS=g}
 
-function fbpBlockHTML(b,i){switch(b.t){
-  case "text":return `<section class="fbp-sec fbp-text ${b.h?"":"no-h"}">${b.h?`<h2>${esc(b.h)}</h2>`:""}<div class="fbp-prose">${fbpText(b.x)}</div></section>`;
+function fbpBlockHTML(b,i){const H=h=>h?`<h2>${esc(h)}</h2>`:"";switch(b.t){
+  case "text":return b.h||b.x||b.img?`<section class="fbp-sec fbp-tw">${b.img?`<img class="fbp-timg" src="${esc(b.img)}" alt="" loading="lazy">`:""}${b.h||b.x?`<div class="fbp-text ${b.h?"":"no-h"}">${H(b.h)}<div class="fbp-prose">${fbpText(b.x)}</div></div>`:""}</section>`:"";
+  case "split":return b.url||b.h||b.x?`<section class="fbp-sec fbp-split ${b.side==="right"?"img-r":""}"><div class="fbp-split-img">${b.url?`<img src="${esc(b.url)}" alt="" loading="lazy">`:""}</div><div class="fbp-split-b">${H(b.h)}<div class="fbp-prose">${fbpText(b.x)}</div></div></section>`:"";
   case "photo":return b.url?`<figure class="fbp-sec fbp-photo ${b.wide?"wide":""}"><img src="${esc(b.url)}" alt="${esc(b.cap||"")}" loading="lazy">${b.cap?`<figcaption>${esc(b.cap)}</figcaption>`:""}</figure>`:"";
-  case "gallery":return b.imgs.length?`<section class="fbp-sec fbp-gal">${b.h?`<h2>${esc(b.h)}</h2>`:""}<div class="fbp-grid n${Math.min(b.imgs.length,4)}">${b.imgs.map((x,j)=>`<a href="${esc(x.url)}" target="_blank" rel="noopener" class="${j===0&&b.imgs.length>4?"big":""}"><img src="${esc(x.url)}" alt="${esc(x.cap||"")}" loading="lazy">${x.cap&&!/^[^\s]{18,}$/.test(x.cap)?`<span>${esc(x.cap)}</span>`:""}</a>`).join("")}</div></section>`:"";
+  case "gallery":return b.imgs.length?`<section class="fbp-sec fbp-gal">${H(b.h)}<div class="fbp-grid n${Math.min(b.imgs.length,4)}">${b.imgs.map((x,j)=>`<a href="${esc(x.url)}" target="_blank" rel="noopener" class="${j===0&&b.imgs.length>4?"big":""}"><img src="${esc(x.url)}" alt="${esc(x.cap||"")}" loading="lazy">${x.cap&&!/^[^\s]{18,}$/.test(x.cap)&&!/\.(jpe?g|png|webp|gif|heic)$/i.test(x.cap)?`<span>${esc(x.cap)}</span>`:""}</a>`).join("")}</div></section>`:"";
+  case "cards":{const L=b.items.filter(x=>x.title||x.text||x.img);return L.length?`<section class="fbp-sec fbp-cards">${H(b.h)}<div class="fbp-cgrid n${Math.min(L.length,3)}">${L.map(x=>`<div class="fbp-card">${x.img?`<img src="${esc(x.img)}" alt="" loading="lazy">`:""}<div class="fbp-card-b">${x.title?`<h3>${esc(x.title)}</h3>`:""}${x.text?`<p>${esc(x.text)}</p>`:""}</div></div>`).join("")}</div></section>`:""}
   case "video":return b.yt||b.url?`<figure class="fbp-sec fbp-video"><div class="fbp-vbox">${b.yt?`<iframe src="https://www.youtube-nocookie.com/embed/${b.yt}?rel=0&amp;modestbranding=1" title="${esc(b.cap||"Video")}" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy" frameborder="0"></iframe>`:`<video src="${esc(b.url)}" controls preload="metadata" playsinline></video>`}</div>${b.cap?`<figcaption>${esc(b.cap)}</figcaption>`:""}</figure>`:"";
   case "quote":return b.x?`<blockquote class="fbp-sec fbp-quote"><p>\u201C${esc(b.x)}\u201D</p>${b.who?`<cite>${esc(b.who)}</cite>`:""}</blockquote>`:"";
+  case "faq":{const L=b.items.filter(x=>x.q);return L.length?`<section class="fbp-sec fbp-faq">${H(b.h||"Questions")}${L.map(x=>`<details><summary>${esc(x.q)}</summary><div class="fbp-prose">${fbpText(x.a)}</div></details>`).join("")}</section>`:""}
+  case "cta":{const u=fbpLink(b.url);return b.h||b.x?`<section class="fbp-sec fbp-ctab"><div>${b.h?`<h2>${esc(b.h)}</h2>`:""}${b.x?`<p>${esc(b.x)}</p>`:""}</div>${u&&b.label?`<a class="btn btn-accent" href="${esc(u)}" ${/^https:/.test(u)?'target="_blank" rel="noopener"':""}>${esc(b.label)}</a>`:""}</section>`:""}
   case "buttons":{const L=b.items.map(x=>({label:x.label,url:fbpLink(x.url)})).filter(x=>x.label&&x.url);return L.length?`<div class="fbp-sec fbp-btns">${L.map((x,j)=>`<a class="btn ${j?"btn-ghost":"btn-accent"}" href="${esc(x.url)}" ${/^https:/.test(x.url)?'target="_blank" rel="noopener"':""}>${esc(x.label)}</a>`).join("")}</div>`:""}
   default:return ""}}
 function fbpContactHTML(p){const z=p.biz||{},web=fbpLink(z.web),fb=fbpHttps(z.fb),ig=fbpHttps(z.ig),tel=fbpTel(z.phone);
@@ -6857,7 +6904,7 @@ function fbpPage(p,more,sub){sub=["about","store","contact"].includes(sub)?sub:"
   const hasC=!!(z.phone||z.email||web||z.addr||z.hours),base="#news--"+p.id;
   const tabs=FBP_PAGES.filter(([k])=>!k||(k==="about"&&(p.about||[]).length)||(k==="store"&&(p.store||[]).some(x=>x.name))||(k==="contact"&&hasC));
   const nav=tabs.length>1?`<nav class="fbp-nav" aria-label="${esc(z.name||unEsc(p.title))} pages"><div class="fbp-nav-in"><b class="fbp-nav-name">${esc(z.name||unEsc(p.title))}</b>${tabs.map(([k,l])=>`<a href="${base}${k?"/"+k:""}" data-fbptab class="${k===sub?"on":""}" ${k===sub?'aria-current="page"':""}>${l}</a>`).join("")}${tel?`<a class="fbp-nav-call" href="tel:${esc(tel)}">${ico("phone","i")}<span>${esc(z.phone)}</span></a>`:""}</div></nav>`:"";
-  const body=sub==="store"?fbpStoreHTML(p):sub==="contact"?(fbpContactHTML(p)||`<div class="fbp"><div class="empty" style="margin:30px 0">No contact details yet.</div></div>`):`<div class="fbp">${B.map(fbpBlockHTML).join("")||`<div class="empty" style="margin:30px 0">This page is still being written.</div>`}</div>${sub?"":fbpContactHTML(p)}`;
+  const body=sub==="store"?fbpStoreHTML(p)+fbpContactHTML(p):sub==="contact"?(fbpContactHTML(p)||`<div class="fbp"><div class="empty" style="margin:30px 0">No contact details yet.</div></div>`):`<div class="fbp">${B.map(fbpBlockHTML).join("")||`<div class="empty" style="margin:30px 0">This page is still being written.</div>`}</div>${fbpContactHTML(p)}`;
   return `<section class="fbp-hero ${cover?"":"no-img"} ${sub?"sub":""}">${cover?`<img class="fbp-hero-img" src="${esc(cover)}" alt="">`:`<div class="fbp-hero-img">${artFor(p,"H")}</div>`}<div class="fbp-hero-shade"></div>
     <div class="fbp-hero-in"><div class="crumbs"><a href="#home">Home</a> / <a href="#news">News &amp; Marketplace</a> / Featured Business</div><span class="fbp-badge">${ico("star","i","width:14px;height:14px")}Featured Business</span><h1>${p.title}</h1>${p.ex?`<p class="fbp-lead">${p.ex}</p>`:""}
       <div class="fbp-hbtn">${tel?`<a class="btn btn-accent" href="tel:${esc(tel)}">${ico("phone","i")}Call ${esc(z.phone)}</a>`:""}${web?`<a class="btn fbp-ghost" href="${esc(web)}" target="_blank" rel="noopener">Visit website \u2197</a>`:""}${z.addr?`<a class="btn fbp-ghost" href="${fbpMaps(z.addr)}" target="_blank" rel="noopener">${ico("pin","i")}Directions</a>`:""}${p.owner&&p.owner!==meId()?`<button type="button" class="btn fbp-ghost" data-dmstart="${esc(p.owner)}" data-dmname="${esc(z.name||unEsc(p.title))}" data-dmctx="${esc(unEsc(p.title))}">${ico("talk","i")}Message</button>`:""}${hasC&&!sub?`<a class="btn fbp-ghost" href="${base}/contact" data-fbptab>Contact &amp; hours</a>`:""}${fbpCanEdit(p)?`<a class="btn fbp-ghost" href="#dashboard" data-fbpedit="${esc(p.id)}">${ico("edit","i")}Edit this page</a>`:""}</div>
@@ -6869,40 +6916,50 @@ function fbpPage(p,more,sub){sub=["about","store","contact"].includes(sub)?sub:"
   <section class="section band"><div class="wrap wide"><div class="sec-head"><h2>More from The Big Nickel</h2><a class="link" href="#news">All posts</a></div><div class="bgrid">${more.map(postCard).join("")}</div></div></section>`}
 
 /* ---------- block editor (dashboard) ---------- */
+function fbpIns(at){const open=PE&&PE._ins===at;
+  return `<div class="fbp-ins ${open?"open":""}">${open?`<div class="fbp-pick"><div class="fbp-pick-h"><b>Add a section</b><button type="button" class="link" data-fbp="insx">Cancel</button></div><div class="fbp-pick-g">${FBP_TYPES.map(([t,l,ic,d])=>`<button type="button" data-fbp="add" data-t="${t}" data-at="${at}">${ico(ic,"i")}<b>${l}</b><small>${d}</small></button>`).join("")}</div></div>`:`<button type="button" class="fbp-ins-b" data-fbp="ins" data-at="${at}">${ico("plus","i")}Add a section</button>`}</div>`}
 const fbpArr=()=>PE._pg==="about"?(PE.about=PE.about||[]):PE.blocks;
 function fbpEditorHTML(p){const pg=p._pg||"home",B=pg==="about"?(p.about||[]):(p.blocks||[]),z=p.biz||{};const f=(k,l,ph,o)=>`<div class="fld"><label for="fbz-${k}">${l}</label>${o&&o.area?`<textarea id="fbz-${k}" data-fbz="${k}" rows="${o.area}" placeholder="${esc(ph)}">${esc(z[k]||"")}</textarea>`:`<input id="fbz-${k}" data-fbz="${k}" value="${esc(z[k]||"")}" placeholder="${esc(ph)}" ${o&&o.type?`type="${o.type}"`:""}>`}</div>`;
   const tl=t=>(FBP_TYPES.find(x=>x[0]===t)||[t,t])[1];
   const cov=`<section class="panel fbp-ed fbp-hero-ed" style="margin:0"><div class="sec-head" style="margin-bottom:8px"><div><h3 style="margin:0">Top of your website (hero)</h3><p class="meta" style="margin:4px 0 0">The big cover photo across the top of every page, with your title and summary on it. Wide photos look best. Your page menu sits right under it.</p></div></div>
       <div class="fbp-cov">${p.cover?`<img src="${esc(p.cover)}" alt="Cover photo">`:`<div class="fbp-cov-none">${ico("camera","i","width:24px;height:24px")}No cover photo yet</div>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${p.cover?"Change":"Upload"} cover<input type="file" accept="image/*" data-fbpfile="cover" hidden></label>${p.cover?`<button type="button" class="btn btn-ghost btn-sm" data-fbp="covdel">Remove</button>`:""}</div></section>`;
   const tabs=`<div class="fbp-etabs" role="tablist">${[["home","Home"],["about","About"],["store","Store"],["contact","Contact"]].map(([k,l])=>`<button type="button" role="tab" class="${pg===k?"on":""}" aria-selected="${pg===k}" data-fbp="pg" data-pg="${k}">${l}${k==="about"&&(p.about||[]).length?` <small>${p.about.length}</small>`:k==="store"&&(p.store||[]).length?` <small>${p.store.length}</small>`:""}</button>`).join("")}</div><p class="meta" style="margin:-4px 0 0">Your website has up to four pages. Pages you leave empty are hidden from visitors.</p>`;
+  const contact=`<section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">Contact, hours &amp; map</h3><p class="meta" style="margin:4px 0 0">Shown at the bottom of every page and on your Contact page, with Call, Directions and Website buttons at the top. Leave anything blank to hide it.</p></div></div>
+      <div class="two">${f("name","Business name","Ogden Coffee Co.")}${f("phone","Phone","(801) 555-0123",{type:"tel"})}</div>
+      <div class="two">${f("email","Email","hello@yourbusiness.com",{type:"email"})}${f("web","Website","yourbusiness.com")}</div>
+      ${f("addr","Address (for the map and directions)","2510 Washington Blvd, Ogden, UT")}
+      ${f("hours","Hours (one line per day)","Mon\u2013Fri: 8am \u2013 6pm\nSat: 9am \u2013 4pm\nSun: Closed",{area:4})}
+      <div class="two">${f("fb","Facebook page link","https://facebook.com/\u2026")}${f("ig","Instagram link","https://instagram.com/\u2026")}</div></section>`;
+  if(pg==="contact")return cov+tabs+`<p class="meta" style="margin:0">Your Contact page shows the details below, with a map and your hours.</p>`+contact;
   if(pg==="store")return cov+tabs+`<section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">Store</h3><p class="meta" style="margin:4px 0 0">Products or services with a photo and price. Add a link for online ordering; otherwise the button calls or emails you.</p></div></div>
     <div class="fbp-blist">${(p.store||[]).map((x,j)=>`<div class="fbp-bk"><div class="fbp-bkh"><b>${ico("tag","i")}Item ${j+1}</b><span><button type="button" class="ibtn" data-fbp="sup" data-i="${j}" ${j?"":"disabled"} aria-label="Move up">${ico("down","i","width:14px;height:14px;transform:rotate(180deg)")}</button><button type="button" class="ibtn" data-fbp="sdown" data-i="${j}" ${j<p.store.length-1?"":"disabled"} aria-label="Move down">${ico("down","i","width:14px;height:14px")}</button><button type="button" class="ibtn" data-fbp="sdel" data-i="${j}" aria-label="Remove item">${ico("x","i","width:14px;height:14px")}</button></span></div>
       <div class="fbp-pic">${x.img?`<img src="${esc(x.img)}" alt="">`:`<span>${ico("camera","i")}</span>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${x.img?"Replace":"Add photo"}<input type="file" accept="image/*" data-fbpfile="store:${j}" hidden></label></div>
       <div class="two"><div class="fld"><label>Name</label><input data-fbs="${j}.name" value="${esc(x.name)}" placeholder="Large breakfast burrito"></div><div class="fld"><label>Price</label><input data-fbs="${j}.price" value="${esc(x.price)}" placeholder="12.95 or From $40"></div></div>
       <div class="fld"><label>Description</label><textarea data-fbs="${j}.desc" rows="2" placeholder="What it is and what's included">${esc(x.desc)}</textarea></div>
       <div class="fld"><label>Order link (optional)</label><input data-fbs="${j}.link" value="${esc(x.link)}" placeholder="yourbusiness.com/order"></div></div>`).join("")||`<div class="empty" style="padding:18px">No items yet.</div>`}</div>
-    <div class="fbp-add"><button type="button" class="btn btn-ghost btn-sm" data-fbp="sadd">${ico("plus","i")}Add an item</button></div><p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`;
-  if(pg==="contact")return cov+tabs+`<section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">Contact, hours &amp; map</h3><p class="meta" style="margin:4px 0 0">Shown on your Contact page and at the bottom of your Home page, with Call, Directions and Website buttons at the top. Leave anything blank to hide it.</p></div></div>
-      <div class="two">${f("name","Business name","Ogden Coffee Co.")}${f("phone","Phone","(801) 555-0123",{type:"tel"})}</div>
-      <div class="two">${f("email","Email","hello@yourbusiness.com",{type:"email"})}${f("web","Website","yourbusiness.com")}</div>
-      ${f("addr","Address (for the map and directions)","2510 Washington Blvd, Ogden, UT")}
-      ${f("hours","Hours (one line per day)","Mon\u2013Fri: 8am \u2013 6pm\nSat: 9am \u2013 4pm\nSun: Closed",{area:4})}
-      <div class="two">${f("fb","Facebook page link","https://facebook.com/\u2026")}${f("ig","Instagram link","https://instagram.com/\u2026")}</div></section>`;
+    <div class="fbp-add"><button type="button" class="btn btn-ghost btn-sm" data-fbp="sadd">${ico("plus","i")}Add an item</button></div><p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`+contact;
+  
   return cov+tabs+`
-    <section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">${pg==="about"?"About page":"Home page"} sections</h3><p class="meta" style="margin:4px 0 0">Stack sections in any order. Use the arrows to move them.</p></div></div>
-      <div class="fbp-blist">${B.length?B.map((b,i)=>`<div class="fbp-bk"><div class="fbp-bkh"><b>${ico((FBP_TYPES.find(x=>x[0]===b.t)||[0,0,"edit"])[2],"i")}${tl(b.t)}</b><span><button type="button" class="ibtn" data-fbp="up" data-i="${i}" ${i?"":"disabled"} aria-label="Move up">${ico("down","i","width:14px;height:14px;transform:rotate(180deg)")}</button><button type="button" class="ibtn" data-fbp="down" data-i="${i}" ${i<B.length-1?"":"disabled"} aria-label="Move down">${ico("down","i","width:14px;height:14px")}</button><button type="button" class="ibtn" data-fbp="del" data-i="${i}" aria-label="Remove section">${ico("x","i","width:14px;height:14px")}</button></span></div>${fbpBlockFields(b,i)}</div>`).join(""):`<div class="empty" style="padding:18px">No sections yet. Add one below.</div>`}</div>
-      <div class="fbp-add"><span class="meta">Add a section:</span>${FBP_TYPES.map(([t,l,ic])=>`<button type="button" class="btn btn-ghost btn-sm" data-fbp="add" data-t="${t}">${ico(ic,"i")}${l}</button>`).join("")}</div><p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`}
+    <section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">${pg==="about"?"About page":"Home page"} sections</h3><p class="meta" style="margin:4px 0 0">Use the \u201CAdd a section\u201D buttons to drop in text, photos, a gallery, services and more, anywhere on the page. Use the arrows to move sections.</p></div></div>
+      <div class="fbp-blist">${fbpIns(0)}${B.length?B.map((b,i)=>`<div class="fbp-bk"><div class="fbp-bkh"><b>${ico((FBP_TYPES.find(x=>x[0]===b.t)||[0,0,"edit"])[2],"i")}${tl(b.t)}</b><span><button type="button" class="ibtn" data-fbp="up" data-i="${i}" ${i?"":"disabled"} aria-label="Move up">${ico("down","i","width:14px;height:14px;transform:rotate(180deg)")}</button><button type="button" class="ibtn" data-fbp="down" data-i="${i}" ${i<B.length-1?"":"disabled"} aria-label="Move down">${ico("down","i","width:14px;height:14px")}</button><button type="button" class="ibtn" data-fbp="del" data-i="${i}" aria-label="Remove section">${ico("x","i","width:14px;height:14px")}</button></span></div>${fbpBlockFields(b,i)}</div>${fbpIns(i+1)}`).join(""):`<div class="empty" style="padding:18px">No sections yet. Add one with the button above.</div>`}</div>
+      <p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`+contact}
 function fbpBlockFields(b,i){const v=(k,l,ph,o)=>`<div class="fld"><label>${l}</label>${o&&o.area?`<textarea data-fbb="${i}.${k}" rows="${o.area}" placeholder="${esc(ph||"")}">${esc(b[k]||"")}</textarea>`:`<input data-fbb="${i}.${k}" value="${esc(b[k]||"")}" placeholder="${esc(ph||"")}">`}</div>`;
-  const pic=(url,lab,attr)=>`<div class="fbp-pic">${url?`<img src="${esc(url)}" alt="">`:`<span>${ico("camera","i")}</span>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${url?"Replace":lab}<input type="file" accept="image/*" ${attr} hidden></label></div>`;
+  const iv=(j,k,l,ph,o)=>{const x=(b.items[j]||{});return `<div class="fld"><label>${l}</label>${o&&o.area?`<textarea data-fbb="${i}.items.${j}.${k}" rows="${o.area}" placeholder="${esc(ph||"")}">${esc(x[k]||"")}</textarea>`:`<input data-fbb="${i}.items.${j}.${k}" value="${esc(x[k]||"")}" placeholder="${esc(ph||"")}">`}</div>`};
+  const pic=(url,lab,file,del)=>`<div class="fbp-pic">${url?`<img src="${esc(url)}" alt="">`:`<span>${ico("camera","i")}</span>`}<div class="fbp-pic-a"><label class="btn btn-ghost btn-sm">${ico("upload","i")}${url?"Replace photo":lab}<input type="file" accept="image/*" data-fbpfile="${file}" hidden></label>${url&&del?`<button type="button" class="btn btn-ghost btn-sm" data-fbp="${del}" data-i="${i}">Remove photo</button>`:""}</div></div>`;
+  const rm=(j,what)=>`<button type="button" class="link fbp-irm" data-fbp="irm" data-i="${i}" data-j="${j}">Remove ${what}</button>`;
   switch(b.t){
-    case "text":return v("h","Heading (optional)","About us")+v("x","Text","Tell people about your business. Leave a blank line between paragraphs. Start lines with \u2022 for a bullet list.",{area:6});
-    case "photo":return pic(b.url,"Upload photo",`data-fbpfile="photo:${i}"`)+v("cap","Caption (optional)","");
-    case "gallery":return v("h","Heading (optional)","Photos")+`<div class="fbp-gal-ed">${b.imgs.map((x,j)=>`<div class="fbp-gi"><img src="${esc(x.url)}" alt=""><button type="button" class="ibtn" data-fbp="gdel" data-i="${i}" data-j="${j}" aria-label="Remove photo">${ico("x","i","width:12px;height:12px")}</button></div>`).join("")}<label class="fbp-gadd">${ico("plus","i")}Add photos<input type="file" accept="image/*" multiple data-fbpfile="gallery:${i}" hidden></label></div>`;
+    case "text":return pic(b.img,"Photo above the heading (optional)","text:"+i,"imgdel")+v("h","Heading","About us")+v("x","Text","Tell people about your business. Leave a blank line between paragraphs. Start lines with \u2022 for a bullet list.",{area:6});
+    case "split":return pic(b.url,"Add photo","photo:"+i,"urldel")+`<div class="fld"><label>Photo side</label><select data-fbb="${i}.side"><option value="left" ${b.side!=="right"?"selected":""}>Photo on the left</option><option value="right" ${b.side==="right"?"selected":""}>Photo on the right</option></select></div>`+v("h","Heading","Our story")+v("x","Text","",{area:5});
+    case "photo":return pic(b.url,"Upload photo","photo:"+i,"urldel")+v("cap","Caption (optional)","");
+    case "gallery":return v("h","Heading (optional)","Photos")+`<div class="fbp-gal-ed">${b.imgs.map((x,j)=>`<div class="fbp-gi"><img src="${esc(x.url)}" alt=""><button type="button" class="ibtn" data-fbp="gdel" data-i="${i}" data-j="${j}" aria-label="Remove photo">${ico("x","i","width:12px;height:12px")}</button></div>`).join("")}<label class="fbp-gadd">${ico("plus","i")}Add photos<input type="file" accept="image/*" multiple data-fbpfile="gallery:${i}" hidden></label></div><p class="meta" style="margin:4px 0 0">Pick several photos at once. Up to 30.</p>`;
+    case "cards":return v("h","Heading (optional)","What we do")+`<div class="fbp-sub">${b.items.map((x,j)=>`<div class="fbp-subi"><div class="fbp-pic sm">${x.img?`<img src="${esc(x.img)}" alt="">`:`<span>${ico("camera","i")}</span>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${x.img?"Replace":"Photo"}<input type="file" accept="image/*" data-fbpfile="card:${i}:${j}" hidden></label></div>${iv(j,"title","Title","Brake repair")}${iv(j,"text","Short description","Pads, rotors and a free inspection.",{area:2})}${rm(j,"box")}</div>`).join("")}</div>${b.items.length<6?`<button type="button" class="btn btn-ghost btn-sm" data-fbp="iadd" data-i="${i}" style="align-self:flex-start">${ico("plus","i")}Add a box</button>`:""}`;
     case "video":return `<div class="fld"><label>YouTube link</label><input data-fbb="${i}.ytlink" value="${b.yt?"https://youtu.be/"+esc(b.yt):""}" placeholder="https://youtu.be/\u2026"></div>${b.url?`<p class="meta" style="margin:0">Uploaded video: ${esc(b.url.split("/").pop().slice(0,40))} <button type="button" class="link" data-fbp="vdel" data-i="${i}">remove</button></p>`:`<label class="btn btn-ghost btn-sm" style="align-self:flex-start">${ico("upload","i")}Or upload a video<input type="file" accept="video/*" data-fbpfile="video:${i}" hidden></label>`}`+v("cap","Caption (optional)","");
     case "quote":return v("x","Quote","The best breakfast burrito in Weber County!",{area:2})+v("who","Who said it","Jamie R., customer");
-    case "buttons":return `<div class="fbp-bt-ed">${[0,1,2].map(j=>{const it=b.items[j]||{};return `<div class="two"><div class="fld"><label>Button ${j+1} text</label><input data-fbb="${i}.items.${j}.label" value="${esc(it.label||"")}" placeholder="${["Order online","See our menu","Book a table"][j]}"></div><div class="fld"><label>Link</label><input data-fbb="${i}.items.${j}.url" value="${esc(it.url||"")}" placeholder="yourbusiness.com/order"></div></div>`}).join("")}</div>`;
+    case "faq":return v("h","Heading (optional)","Questions")+`<div class="fbp-sub">${b.items.map((x,j)=>`<div class="fbp-subi">${iv(j,"q","Question","Do you take walk-ins?")}${iv(j,"a","Answer","Yes, before 3pm every weekday.",{area:2})}${rm(j,"question")}</div>`).join("")}</div>${b.items.length<12?`<button type="button" class="btn btn-ghost btn-sm" data-fbp="iadd" data-i="${i}" style="align-self:flex-start">${ico("plus","i")}Add a question</button>`:""}`;
+    case "cta":return v("h","Headline","Free estimates this month")+v("x","Short text (optional)","Call or book online, we'll get back to you the same day.",{area:2})+`<div class="two">${v("label","Button text","Book now")}${v("url","Button link","yourbusiness.com/book or tel:8015550123")}</div>`;
+    case "buttons":return `<div class="fbp-bt-ed">${[0,1,2].map(j=>`<div class="two">${iv(j,"label","Button "+(j+1)+" text",["Order online","See our menu","Book a table"][j])}${iv(j,"url","Link","yourbusiness.com/order")}</div>`).join("")}</div>`;
     default:return ""}}
-function fbpNew(t){return {text:{t,h:"",x:""},photo:{t,url:"",cap:"",wide:true},gallery:{t,h:"",imgs:[]},video:{t,yt:"",url:"",cap:""},quote:{t,x:"",who:""},buttons:{t,items:[]}}[t]}
+function fbpNew(t){return {text:{t,h:"",x:"",img:""},split:{t,url:"",h:"",x:"",side:"left"},photo:{t,url:"",cap:"",wide:true},gallery:{t,h:"",imgs:[]},cards:{t,h:"",items:[{img:"",title:"",text:""},{img:"",title:"",text:""},{img:"",title:"",text:""}]},video:{t,yt:"",url:"",cap:""},quote:{t,x:"",who:""},faq:{t,h:"",items:[{q:"",a:""},{q:"",a:""}]},cta:{t,h:"",x:"",label:"",url:""},buttons:{t,items:[]}}[t]}
 function fbpEnsure(){if(!PE)return;PE.about=PE.about||[];PE.store=PE.store||[];PE._pg=PE._pg||"home";if(!PE.blocks||!PE.blocks.length)PE.blocks=fbpAutoBlocks(Object.assign({},PE,{body:textToBody(PE.text||"")}));if(!PE.biz)PE.biz=cleanBizInfo({});
   if(!PE.cover&&PE.coverIdx!=null&&PE.media&&PE.media[PE.coverIdx])PE.cover=PE.media[PE.coverIdx].url}
 function fbpUpsellHTML(){return `<div class="fbp-upsell">${ico("star","i","width:22px;height:22px")}<div><b>Featured Business page \u00B7 $${FBP_PRICE}/month</b><p>Turn this post into a full business page: big cover photo, text and photo sections, gallery, video, customer quotes, buttons, and your phone, hours and map at the bottom. Edit it any time.</p></div><button type="button" class="btn btn-accent" data-plan="Featured Business page">Get it \u00B7 $${FBP_PRICE}/mo</button></div>`}
@@ -6917,7 +6974,11 @@ document.addEventListener("click",e=>{const c=e.target.closest("[data-fbp]");if(
   if(a==="pg"){PE._pg=c.dataset.pg;peRender();return}
   if(a==="sadd"){S.push({name:"",price:"",img:"",desc:"",link:""});peRender();return}
   if(a==="sdel"){S.splice(i,1);peRender();return}if(a==="sup"&&i>0){[S[i-1],S[i]]=[S[i],S[i-1]];peRender();return}if(a==="sdown"&&i<S.length-1){[S[i+1],S[i]]=[S[i],S[i+1]];peRender();return}
-  if(a==="add"){B.push(fbpNew(c.dataset.t));peRender();setTimeout(()=>{const L=$$(".fbp-bk");if(L.length)L[L.length-1].scrollIntoView({block:"center",behavior:"smooth"})},30);return}
+  if(a==="ins"){PE._ins=+c.dataset.at;peRender();return}if(a==="insx"){PE._ins=null;peRender();return}
+  if(a==="add"){const at=c.dataset.at!=null?Math.min(+c.dataset.at,B.length):B.length;B.splice(at,0,fbpNew(c.dataset.t));PE._ins=null;peRender();setTimeout(()=>{const L=$$(".fbp-bk");if(L[at])L[at].scrollIntoView({block:"center",behavior:"smooth"})},30);return}
+  if(a==="iadd"){const b=B[i];b.items.push(b.t==="faq"?{q:"",a:""}:{img:"",title:"",text:""});peRender();return}
+  if(a==="irm"){B[i].items.splice(+c.dataset.j,1);peRender();return}
+  if(a==="imgdel"){B[i].img="";peRender();return}if(a==="urldel"){B[i].url="";peRender();return}
   if(a==="up"&&i>0)[B[i-1],B[i]]=[B[i],B[i-1]];if(a==="down"&&i<B.length-1)[B[i+1],B[i]]=[B[i],B[i+1]];
   if(a==="del")B.splice(i,1);if(a==="gdel")B[i].imgs.splice(+c.dataset.j,1);if(a==="vdel")B[i].url="";if(a==="covdel")PE.cover="";peRender()});
 document.addEventListener("change",async e=>{const el=e.target;if(!el.dataset||!el.dataset.fbpfile||!PE)return;const [kind,ix]=el.dataset.fbpfile.split(":"),files=[...el.files],m=$("#fbpUp");if(!files.length)return;
@@ -6925,12 +6986,16 @@ document.addEventListener("change",async e=>{const el=e.target;if(!el.dataset||!
   try{if(kind==="cover"){PE.cover=(await mediaUpload(files[0])).url}
     else if(kind==="store"){PE.store[+ix].img=(await mediaUpload(files[0])).url}
     else if(kind==="photo"){fbpArr()[+ix].url=(await mediaUpload(files[0])).url}
+    else if(kind==="text"){fbpArr()[+ix].img=(await mediaUpload(files[0])).url}
+    else if(kind==="card"){const jx=+el.dataset.fbpfile.split(":")[2];fbpArr()[+ix].items[jx].img=(await mediaUpload(files[0])).url}
     else if(kind==="video"){const r=await mediaUpload(files[0]);if(r.type!=="video")throw {message:"That isn't a video file."};fbpArr()[+ix].url=r.url}
-    else if(kind==="gallery"){for(const f of files.slice(0,24)){const r=await mediaUpload(f);if(r.type==="image")fbpArr()[+ix].imgs.push({url:r.url,cap:""})}}
+    else if(kind==="gallery"){for(const f of files.slice(0,30)){const r=await mediaUpload(f);if(r.type==="image")fbpArr()[+ix].imgs.push({url:r.url,cap:""})}}
     peRender();toast("Uploaded")}catch(x){say("That upload didn't work. "+((x&&x.message)||""),1)}});
 document.addEventListener("click",e=>{const g=e.target.closest("[data-fbptab]");if(g&&!e.metaKey&&!e.ctrlKey){const h=g.getAttribute("href");if(h===location.hash){e.preventDefault();return}const nav=$(".fbp-nav");const stay=nav&&nav.getBoundingClientRect().top<=2;e.preventDefault();route._keep=true;location.hash=h;setTimeout(()=>{const n=$(".fbp-nav");if(n)window.scrollTo(0,stay?n.offsetTop:0)},30);return}
   const ed=e.target.closest("[data-fbpedit]");if(ed){e.preventDefault();const p=MYPOSTS.find(x=>x.id===ed.dataset.fbpedit);
     if(p){PE=Object.assign(JSON.parse(JSON.stringify(p)),{isNew:false,text:p.text||bodyToText(p.body)});fbpEnsure();dtab="posts";location.hash="#dashboard";route()}
+    else if(ADS.admin&&blogAdoptable().some(it=>(it.kind==="site"?it.b.id:"nf-"+it.x.id)===ed.dataset.fbpedit)){const id=ed.dataset.fbpedit;ed.disabled=true;toast("Moving this page into your account so you can edit it\u2026");
+      blogAdopt(id).then(()=>{const q=MYPOSTS.find(x=>x.id===id);if(!q)return;PE=Object.assign(JSON.parse(JSON.stringify(q)),{isNew:false,text:q.text||bodyToText(q.body)});fbpEnsure();dtab="posts";location.hash="#dashboard";route()},x=>{ed.disabled=false;toast("Couldn't open the editor. "+((x&&x.message)||""))})}
     else if(ADS.admin){const q=ALLUSERPOSTS.find(x=>x.id===ed.dataset.fbpedit);if(q){PE=Object.assign(JSON.parse(JSON.stringify(q)),{isNew:false,_owner:q.owner,text:q.text||bodyToText(q.body)});fbpEnsure();dtab="posts";location.hash="#dashboard";route()}}return}
   const mine=e.target.closest("[data-fbpmine]");if(mine){e.preventDefault();const q=MYPOSTS.find(x=>x.bc==="Featured Business");dtab="posts";
     PE=q?Object.assign(JSON.parse(JSON.stringify(q)),{isNew:false,text:q.text||bodyToText(q.body)}):{isNew:true,id:"fb"+Date.now().toString(36),title:"",bc:"Featured Business",ex:"",text:"",media:[],coverIdx:null,status:"Draft",blocks:[fbpNew("text")],about:[],store:[],biz:cleanBizInfo({}),_pg:"home"};fbpEnsure();location.hash="#dashboard";route();return}
@@ -6969,7 +7034,7 @@ function blogHtmlToText(html){const doc=new DOMParser().parseFromString("<div>"+
 function blogAdoptable(){if(!ADS.admin)return [];const have=new Set(MYPOSTS.map(p=>p.id)),L=[];
   (POSTS_BASE||[]).forEach(b=>{const e=PEDIT[b.id]||{};if(!e.hidden&&!have.has(cleanId(b.id)))L.push({kind:"site",b,e})});
   NF.filter(x=>x.kind==="post"&&x.title&&!x.hidden&&!have.has(cleanId("nf-"+x.id))).forEach(x=>L.push({kind:"nf",x}));return L}
-async function blogAdopt(){const todo=blogAdoptable();if(!todo.length)return 0;const now=Date.now(),author=(MYPROF||PROF_DEFAULT).name,add=[];
+async function blogAdopt(only){const todo=blogAdoptable().filter(it=>!only||(it.kind==="site"?it.b.id===only:"nf-"+it.x.id===only));if(!todo.length)return 0;const now=Date.now(),author=(MYPROF||PROF_DEFAULT).name,add=[];
   const fmt=ts=>new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
   todo.forEach(it=>{let id,title,ex,bc,text,media=[],cover="",ts,m;
     if(it.kind==="site"){const b=it.b,e=it.e;id=b.id;title=unEsc(e.title||b.title);ex=unEsc(e.ex||b.ex);bc=e.bc||b.bc;ts=b.ts||+new Date(b.d)||now;m=b.m;
