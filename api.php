@@ -429,7 +429,31 @@ function bn_rewards_status(string $uid): array {
 }
 
 /** userposts/{uid} written by its member: "featured" and "bumped" only with a paid perk or an earned reward. */
+/** Business websites (Featured Business posts) can only be published on a paid plan, or when the admin gave one. */
+function bn_bizpage_ok(string $uid): bool {
+    $g = bn_get_doc('settings/bizpages');
+    if ($g && isset($g->grants) && is_object($g->grants) && !empty($g->grants->$uid)) return true;
+    $ao = bn_get_doc('adorders/' . $uid) ?? new stdClass();
+    foreach (bn_objs($ao->upgrades ?? []) as $u) {
+        if (($u->status ?? '') !== 'Paid') continue;
+        foreach (bn_objs($u->items ?? []) as $i) if (($i->kind ?? '') === 'bizsite' && (int) ($u->paidAt ?? $u->at ?? 0) + 31 * BN_DAY_MS > bn_now()) return true;
+    }
+    return false;
+}
 function bn_guard_userposts(object $new, ?object $old, string $uid): object {
+    if (property_exists($new, 'posts') && is_array($new->posts)) {
+        $ok = null;
+        $was = [];
+        foreach (bn_objs($old->posts ?? []) as $q) $was[(string) ($q->id ?? '')] = $q;
+        foreach ($new->posts as $q) {
+            if (!is_object($q) || ($q->bc ?? '') !== 'Featured Business' || ($q->status ?? '') !== 'Published') continue;
+            $prev = $was[(string) ($q->id ?? '')] ?? null;
+            // unchanged pages stay up; new or edited ones need the plan
+            if ($prev && json_encode($prev) === json_encode($q)) continue;
+            if ($ok === null) $ok = bn_bizpage_ok($uid);
+            if (!$ok) $q->status = 'Draft';
+        }
+    }
     if (!property_exists($new, 'listings') || !is_array($new->listings)) return $new;
     $now = bn_now();
     $ent = bn_ent_get($uid); $promo = bn_promo();

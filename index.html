@@ -3265,6 +3265,130 @@ b,strong,th,dt{font-weight:500}
 .pe-mact .ibtn{width:30px;height:30px;color:var(--fg)}
 .pe-mact .ibtn:hover{background:var(--paper)}
 .post-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:24px 0}
+/* ================= Featured Business websites ================= */
+.fbp-hero{position:relative;min-height:min(72vh,640px);display:flex;align-items:flex-end;color:#fff;background:#14161a;overflow:hidden}
+.fbp-hero.sub{min-height:300px}
+.fbp-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fbp-hero-img svg{width:100%;height:100%}
+.fbp-hero-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,13,.25) 0%,rgba(10,11,13,.35) 40%,rgba(10,11,13,.88) 100%)}
+.fbp-hero-in{position:relative;z-index:1;width:min(1180px,100%);margin:0 auto;padding:56px 28px 44px}
+.fbp-hero .crumbs,.fbp-hero .crumbs a{color:rgba(255,255,255,.78)}
+.fbp-badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:5px 12px;border-radius:999px;background:#c9a227;color:#1a1405;font:700 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase}
+.fbp-hero h1{font:800 clamp(34px,6vw,68px)/1.02 var(--f-display);letter-spacing:-.01em;margin:14px 0 0;max-width:16ch;text-wrap:balance}
+.fbp-hero.sub h1{font-size:clamp(28px,4.4vw,46px)}
+.fbp-lead{font-size:clamp(17px,2vw,21px);line-height:1.5;max-width:60ch;margin:14px 0 0;color:rgba(255,255,255,.9)}
+.fbp-hero.sub .fbp-lead{display:none}
+.fbp-hbtn{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.fbp-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(6px)}
+.fbp-ghost:hover{background:rgba(255,255,255,.22)}
+.fbp-meta{margin-top:18px;font:500 13px var(--f-mono);color:rgba(255,255,255,.65)}
+.fbp-hero .btn .i,.fbp-contact .btn .i{width:16px;height:16px}
+/* page tabs */
+.fbp-nav{position:sticky;top:62px;z-index:20;background:var(--card);border-bottom:1px solid var(--line);box-shadow:0 6px 18px -14px rgba(0,0,0,.4)}
+.fbp-nav-in{width:min(1180px,100%);margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none}
+.fbp-nav-in::-webkit-scrollbar{display:none}
+.fbp-nav-name{font:800 16px var(--f-display);margin-right:18px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.fbp-nav a{padding:17px 14px 15px;border-bottom:3px solid transparent;color:var(--muted);font-weight:600;text-decoration:none;white-space:nowrap}
+.fbp-nav a:hover{color:var(--fg)}
+.fbp-nav a.on{color:var(--fg);border-bottom-color:#c9a227}
+.fbp-nav .fbp-nav-call{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--fg);border:0}
+.fbp-nav .fbp-nav-call .i{width:16px;height:16px}
+.fbp-subh{width:min(1080px,100%);margin:0 auto;padding:40px 28px 0}
+.fbp-subh h2{font:800 clamp(26px,3.4vw,38px) var(--f-display);margin:0}
+/* blocks */
+.fbp{width:min(1080px,100%);margin:0 auto;padding:16px 28px 40px}
+.fbp-sec{margin:44px 0}
+.fbp-text{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:40px;align-items:start}
+.fbp-text.no-h{grid-template-columns:minmax(0,1fr);max-width:760px}
+.fbp-text h2{font:800 clamp(24px,2.8vw,34px)/1.1 var(--f-display);margin:0;padding-top:4px;border-top:4px solid #c9a227;padding-top:14px}
+.fbp-prose{font-size:18px;line-height:1.7}
+.fbp-prose p{margin:0 0 1em}.fbp-prose p:last-child{margin:0}
+.fbp-prose ul{margin:0 0 1em;padding-left:1.2em}.fbp-prose li{margin:.3em 0}
+.fbp-prose a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.fbp-photo img{display:block;width:100%;max-height:640px;object-fit:cover;border-radius:14px}
+.fbp-photo figcaption,.fbp-video figcaption{margin-top:10px;color:var(--muted);font-size:14px;text-align:center}
+.fbp-gal h2{font:800 clamp(22px,2.6vw,30px) var(--f-display);margin:0 0 16px}
+.fbp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fbp-grid.n1{grid-template-columns:1fr}.fbp-grid.n2{grid-template-columns:1fr 1fr}
+.fbp-grid a{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;border-radius:10px;background:var(--paper)}
+.fbp-grid a.big{grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
+.fbp-grid img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.fbp-grid a:hover img{transform:scale(1.04)}
+.fbp-grid a span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:13px}
+.fbp-vbox{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}
+.fbp-vbox iframe,.fbp-vbox video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.fbp-quote{margin:56px auto;max-width:820px;text-align:center;padding:10px 20px}
+.fbp-quote p{font:600 clamp(22px,3vw,32px)/1.35 var(--f-display);margin:0;text-wrap:balance}
+.fbp-quote cite{display:block;margin-top:14px;font:500 14px var(--f-mono);color:var(--muted);font-style:normal}
+.fbp-quote:before{content:"";display:block;width:56px;height:4px;background:#c9a227;margin:0 auto 22px;border-radius:2px}
+.fbp-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.fbp-btns .btn{padding:14px 22px;font-size:16px}
+/* store */
+.fbp-store{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.fbp-item{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.fbp-item-img{aspect-ratio:4/3;background:var(--paper)}
+.fbp-item-img img{width:100%;height:100%;object-fit:cover}
+.fbp-item-img.none{display:grid;place-items:center;color:var(--muted);aspect-ratio:auto;height:96px}
+.fbp-item-b{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.fbp-item-b h3{margin:0;font:700 18px var(--f-display)}
+.fbp-price{font:700 17px var(--f-mono)}
+.fbp-item-b p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.fbp-item-a{margin-top:auto;padding-top:8px}
+/* contact */
+.fbp-contact{background:#14161a;color:#f2f2ef;margin-top:20px}
+.fbp-cin{width:min(1180px,100%);margin:0 auto;padding:56px 28px;display:grid;grid-template-columns:1.1fr .8fr 1.3fr;gap:36px;align-items:start}
+.fbp-contact .eyebrow{color:#c9a227}
+.fbp-contact h2{font:800 clamp(26px,3vw,36px) var(--f-display);margin:6px 0 18px;color:#fff}
+.fbp-clist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.fbp-clist li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.fbp-clist .i{width:18px;height:18px;flex:none;margin-top:3px;color:#c9a227}
+.fbp-clist a{color:#fff;text-decoration:none;word-break:break-word}.fbp-clist a:hover{text-decoration:underline}
+.fbp-soc{display:flex;gap:14px;margin-top:16px}.fbp-soc a{color:#d9d3c2;font-weight:600}
+.fbp-cbtn{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.fbp-hours h3{margin:0 0 12px;font:700 15px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:#c9a227}
+.fbp-hr{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:15px}
+.fbp-hr span{color:#c9c9c4}.fbp-hr b{font-weight:600;text-align:right}
+.fbp-map{border-radius:14px;overflow:hidden;min-height:300px;background:#22252a}
+.fbp-map iframe{width:100%;height:100%;min-height:300px;border:0;display:block;filter:grayscale(.2)}
+.fbp-foot{width:min(1080px,100%);margin:0 auto;padding:28px 28px 40px;display:flex;flex-direction:column;gap:22px}
+.fbp-cta{display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#1a1405,#3a2d0a);color:#f1dc93}
+.fbp-cta .i{color:#c9a227;flex:none}.fbp-cta span{flex:1;font-size:15px;line-height:1.5;color:#e9e2c8}.fbp-cta b{color:#fff}
+@media (max-width:900px){.fbp-cin{grid-template-columns:1fr 1fr}.fbp-map{grid-column:1/-1}}
+@media (max-width:720px){.fbp-text{grid-template-columns:1fr;gap:14px}.fbp-hero-in{padding:40px 18px 30px}.fbp,.fbp-subh,.fbp-foot{padding-left:18px;padding-right:18px}.fbp-nav-in{padding:0 12px}.fbp-nav-name{display:none}.fbp-nav .fbp-nav-call span{display:none}.fbp-cin{grid-template-columns:1fr;padding:40px 18px}.fbp-grid{grid-template-columns:1fr 1fr}.fbp-grid a.big{grid-column:span 2;grid-row:auto;aspect-ratio:4/3}.fbp-prose{font-size:17px}.fbp-cta{flex-direction:column;align-items:flex-start}.fbp-sec{margin:32px 0}}
+.fbp-plan{border-color:#c9a227!important}.fbp-ribbon{background:#c9a227;color:#1a1405}
+.fbp-dir{margin:0 0 26px;padding:18px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.fbp-dir .eyebrow{display:flex;align-items:center;gap:5px;color:#9a7b14}
+.fbp-dir-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+.fbp-dcard{scroll-snap-align:start;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;color:inherit;text-decoration:none;background:var(--card)}
+.fbp-dcard:hover{border-color:#c9a227}
+.fbp-dimg{aspect-ratio:16/9;background:var(--paper);overflow:hidden}.fbp-dimg img,.fbp-dimg svg{width:100%;height:100%;object-fit:cover}
+.fbp-db{padding:10px 12px;display:flex;flex-direction:column;gap:4px}.fbp-db b{font:700 15px var(--f-display)}.fbp-db small{color:var(--muted);font-size:13px;line-height:1.4}.fbp-db em{font-style:normal;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+/* editor */
+.fbp-etabs{display:flex;gap:4px;background:var(--card);padding:0 8px;border-radius:0 0 12px 12px;border:1px solid var(--line);border-top:0;margin-top:-14px;box-shadow:0 6px 14px -12px rgba(0,0,0,.4)}
+.fbp-etabs button{flex:1;padding:14px 8px 12px;border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;font:600 14px var(--f-body);color:var(--muted);cursor:pointer}
+.fbp-etabs button.on{color:var(--fg);border-bottom-color:#c9a227}
+.fbp-etabs small{font:600 11px var(--f-mono);background:var(--line);border-radius:999px;padding:1px 6px;margin-left:4px}
+.fbp-ed .fld{margin-bottom:10px}
+.fbp-cov{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fbp-hero-ed{border-radius:12px 12px 0 0!important;background:linear-gradient(180deg,#2a2d33,#14161a)!important;color:#fff;border-color:#14161a!important}.fbp-hero-ed h3{color:#fff}.fbp-hero-ed .meta{color:rgba(255,255,255,.7)!important}.fbp-hero-ed .btn-ghost{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}.fbp-hero-ed .fbp-cov-none{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3)}
+.fbp-cov img{width:220px;aspect-ratio:16/9;object-fit:cover;border-radius:10px}
+.fbp-cov-none{width:220px;aspect-ratio:16/9;border-radius:10px;border:2px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center}
+.fbp-blist{display:flex;flex-direction:column;gap:12px}
+.fbp-bk{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
+.fbp-bkh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.fbp-bkh b{display:inline-flex;align-items:center;gap:8px;font-size:14px}.fbp-bkh b .i{width:16px;height:16px}
+.fbp-bkh span{display:flex;gap:2px}.fbp-bkh .ibtn{width:30px;height:30px;color:var(--fg)}.fbp-bkh .ibtn:hover:not([disabled]){background:var(--paper)}.fbp-bkh .ibtn[disabled]{opacity:.3}
+.fbp-pic{display:flex;align-items:center;gap:12px}
+.fbp-pic img,.fbp-pic>span{width:120px;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:var(--paper);display:grid;place-items:center;color:var(--muted)}
+.fbp-gal-ed{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px}
+.fbp-gi{position:relative;aspect-ratio:1}.fbp-gi img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.fbp-gi .ibtn{position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(0,0,0,.6);color:#fff}
+.fbp-gadd{aspect-ratio:1;border:2px dashed var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer;text-align:center}
+.fbp-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.fbp-upsell{display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:12px;background:linear-gradient(135deg,#1a1405,#3a2d0a);color:#e9e2c8}
+.fbp-upsell .i{color:#c9a227;flex:none}.fbp-upsell b{color:#fff}.fbp-upsell p{margin:4px 0 0;font-size:14px;line-height:1.5}
+@media (max-width:600px){.fbp-upsell{flex-direction:column;align-items:flex-start}}
+
 .post-media figure{margin:0}
 .post-media img,.post-media video{width:100%;border-radius:var(--r);display:block;background:#000;max-height:420px;object-fit:cover}
 .post-media figcaption{font-size:13px;color:var(--muted);margin-top:4px}
@@ -4824,6 +4948,7 @@ function vBiz(){
     <main class="bz3-main">
       <div class="bz-bar"><b id="bzCount">${n} business${n===1?"":"es"}</b><div class="bz-bar-r"><button class="btn btn-ghost btn-sm bz-toggle" data-bztoggle aria-expanded="false" aria-controls="bzFilters">${ico("list","i","width:16px;height:16px")}Filters<span class="bz-n" id="bzToggleN" ${fc?"":"hidden"}>${fc}</span></button>
         <label class="bz-sort"><span>Sort</span><select id="bzSort" data-bzf="sort">${[["featured","Featured first"],["rating","Highest rated"],["reviews","Most reviewed"],["az","Name A\u2013Z"]].map(([v,l])=>`<option value="${v}" ${BZF.sort===v?"selected":""}>${l}</option>`).join("")}</select></label></div></div>
+      ${fbpDirHTML()}
       <div class="biz-row" id="bizRow">${bizResultsHTML()}</div>
       <div class="panel" style="margin-top:28px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center"><div><h3 style="margin:0 0 4px">Get your business in front of Ogden buyers</h3><p style="margin:0;color:var(--muted)">Spotlight placement on the home page, a business profile and a monthly report of calls and messages.</p></div><a class="btn btn-accent" href="#dashboard" data-tab="plans">See business plans</a></div>
       <div style="margin-top:20px">${socPlug("strip")}</div>
@@ -5154,8 +5279,8 @@ function vDash(){
     <div class="panel"><h3>Payout method</h3><p style="margin:0 0 12px;color:var(--muted)">Bank account ending in 4410 \u00B7 weekly on Fridays</p><button class="btn btn-ghost btn-sm" data-soon>Change payout method</button></div>`;
   }
   if(dtab==="plans"){
-    const plans=[["Basic","$0","per ad",["30-day listing","Up to 8 photos","Messaging"],true],["Bump","$5","each time",["Jumps back to the top of Newest","Bumped tag for 24 hours","Use as often as you like",'<a href="#bump-info" style="color:var(--fg)">How bumping works</a>']],["Featured Ad","$5","per 7 days",["Top of category","Home page carousel","Featured badge"]],["Power Seller","$65","per month",["10 free bumps a month","1 week business banner ad","25 featured listings a month","Unlimited listings with video","10 auctions a month","Or $175 for 3 months (save $20)",'<a href="#dashboard" data-tab="power" style="color:var(--fg)">See everything you get</a>']],["Business Page","$5","per month",["Your own business profile","Update info and hours anytime","Unlimited photos"]],["Business Spotlight","$79","per month",["Business profile","Home page spotlight","Monthly lead report"]]];
-    body=`<div class="dash-head"><h2>Featured &amp; plans</h2></div>${rwdCard()}${rwdAdminHTML()}<div class="plan-grid">${plans.map(p=>`<div class="plan ${p[4]?"cur":""} ${p[0]==="Power Seller"?"pw-plan":""}">${p[0]==="Power Seller"?`<span class="pw-ribbon">Best value</span>`:""}<div class="eyebrow">${p[0]}</div><b>${p[1]}</b><span class="meta">${p[2]}</span><ul>${p[3].map(x=>`<li>${x}</li>`).join("")}</ul>${p[0]==="Bump"?`<a class="btn btn-accent btn-sm" style="margin-top:auto" href="#dashboard" data-tab="listings">Bump a listing</a>`:`${(()=>{const mp=myPlan(),cur=p[4]&&!mp||mp&&PLAN_KIND[p[0]]===mp.kind;return `<button class="btn ${cur?"btn-ghost":"btn-accent"} btn-sm" style="margin-top:auto" ${cur?"disabled":`data-plan="${p[0]}"`}>${cur?(mp&&!p[4]?"Active until "+new Date(mp.until).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Current plan"):p[0]==="Featured Ad"?"Feature a listing":"Choose "+p[0]}</button>`})()}`}</div>`).join("")}</div>
+    const plans=[["Basic","$0","per ad",["30-day listing","Up to 8 photos","Messaging"],true],["Bump","$5","each time",["Jumps back to the top of Newest","Bumped tag for 24 hours","Use as often as you like",'<a href="#bump-info" style="color:var(--fg)">How bumping works</a>']],["Featured Ad","$5","per 7 days",["Top of category","Home page carousel","Featured badge"]],["Power Seller","$65","per month",["10 free bumps a month","1 week business banner ad","25 featured listings a month","Unlimited listings with video","10 auctions a month","Or $175 for 3 months (save $20)",'<a href="#dashboard" data-tab="power" style="color:var(--fg)">See everything you get</a>']],["Business website","$20","per month",["Home, About, Store &amp; Contact pages","Big cover photo, galleries &amp; video","Hours, map, Call &amp; Message buttons","Listed in the Business directory","Edit anytime from your dashboard"]],["Business Spotlight","$79","per month",["Business profile","Home page spotlight","Monthly lead report"]]];
+    body=`<div class="dash-head"><h2>Featured &amp; plans</h2></div>${rwdCard()}${rwdAdminHTML()}<div class="plan-grid">${plans.map(p=>`<div class="plan ${p[4]?"cur":""} ${p[0]==="Power Seller"?"pw-plan":""} ${p[0]==="Business website"?"fbp-plan":""}">${p[0]==="Business website"?`<span class="pw-ribbon fbp-ribbon">New</span>`:""}${p[0]==="Power Seller"?`<span class="pw-ribbon">Best value</span>`:""}<div class="eyebrow">${p[0]}</div><b>${p[1]}</b><span class="meta">${p[2]}</span><ul>${p[3].map(x=>`<li>${x}</li>`).join("")}</ul>${p[0]==="Bump"?`<a class="btn btn-accent btn-sm" style="margin-top:auto" href="#dashboard" data-tab="listings">Bump a listing</a>`:p[0]==="Business website"&&fbpEntitled()&&!ADS.admin?`<button class="btn btn-accent btn-sm" style="margin-top:auto" data-fbpmine>${MYPOSTS.some(x=>x.bc==="Featured Business")?"Edit your website":"Build your website"}</button>`:`${(()=>{const mp=myPlan(),cur=p[4]&&!mp||mp&&PLAN_KIND[p[0]]===mp.kind;return `<button class="btn ${cur?"btn-ghost":"btn-accent"} btn-sm" style="margin-top:auto" ${cur?"disabled":`data-plan="${p[0]}"`}>${cur?(mp&&!p[4]?"Active until "+new Date(mp.until).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Current plan"):p[0]==="Featured Ad"?"Feature a listing":"Choose "+p[0]}</button>`})()}`}</div>`).join("")}</div>
     <div class="panel" style="margin-top:18px"><h3>Your upgrade orders</h3><p class="meta" style="margin:0 0 10px">Pay by credit or debit card. Upgrades switch on as soon as the payment is confirmed.</p>${upgRows(MYUPG.slice().sort((a,b)=>b.at-a.at),false)}</div>`;
   }
   if(dtab==="posts")body=dashPosts();
@@ -5289,7 +5414,9 @@ function shareRow(title,url){
     <button class="btn btn-ghost btn-sm" data-copylink="${esc(url)}">Copy link</button></div>`;
 }
 function vNews(id){
+  let sub="";if(id&&id.includes("/"))[id,sub]=id.split("/");
   if(id){const p=POSTS.find(x=>x.id===id);if(p){const more=POSTS.filter(x=>x!==p&&x.bc===p.bc).concat(POSTS.filter(x=>x!==p&&x.bc!==p.bc)).slice(0,3);
+    if(p.bc==="Featured Business")return fbpPage(p,more,sub);
     return `<section class="blog-hero sm post-hero"><div class="post-hero-art" aria-hidden="true">${artFor(p,"H")}</div>${blogHeroArt()}<div class="wrap wide blog-hero-in"><div class="crumbs"><a href="#home">Home</a> / <a href="#news">News &amp; Marketplace</a> / ${p.bc}</div><span class="bcat static">${p.bc}</span><h1>${p.title}</h1><div class="bmeta light">By ${pAuthor(p)} \u00B7 ${p.d} \u00B7 ${p.m} min read</div><div class="hero-share">${shareRow(p.title)}</div></div></section>
     <div class="wrap wide"><div class="news-layout with-side"><article class="news-main"><div class="article">
     <p style="font-size:19px;color:var(--fg);font-weight:500">${p.ex}</p>
@@ -5622,11 +5749,11 @@ async function initAds(){
   db.collection("businesses").onSnapshot(sn=>{const o={};sn.docs.forEach(d=>o[d.id]=d.data());BIZDB=o;const v=(location.hash||"").slice(1);if(!bizEdit&&(v==="businesses"||v.startsWith("biz--")||v==="home"||v===""))route()},()=>{});
   db.collection("adslive").onSnapshot(sn=>{ADS.live=sn.docs.map(d=>{const x=d.data()||{};return {id:cleanId(d.id),product:AD_PRODUCTS[x.product]?x.product:"",artUrl:safeUrl(x.artUrl),link:safeHttps(x.link),business:noTags(x.business).slice(0,80)}});renderSlots()},()=>{});
   ADS.uid=user?await user.id().catch(()=>null):null;
-  ADS.mode="live";ptLoad();wxtMsgLoad();secuLoad();houseLoad();promoLoad();prmLoad();nfLoad();pedLoad();staffLoad();modLoad();medLoad();loadUserContent();loadReviews();payLoad();shopOrdersLoad();galLoad();socLoad();fbqLoad();mailLoad();upgLoad();rwSrvLoad();setTimeout(dmInit,400);if(ADS.admin)secLoad();else SEC_READY=true;
+  ADS.mode="live";ptLoad();wxtMsgLoad();secuLoad();houseLoad();promoLoad();prmLoad();nfLoad();pedLoad();staffLoad();modLoad();fbpGrantsLoad();medLoad();loadUserContent();loadReviews();payLoad();shopOrdersLoad();galLoad();socLoad();fbqLoad();mailLoad();upgLoad();rwSrvLoad();setTimeout(dmInit,400);if(ADS.admin)secLoad();else SEC_READY=true;
   if(ADS.admin)db.collection("adorders").onSnapshot(sn=>{ADS.orders=[];ADS.mail=[];ADS.upgrades=[];sn.docs.forEach(d=>{((d.data()||{}).mail||[]).forEach(m=>ADS.mail.push(cleanMail(m,d.id)));ADS.upgrades.push(...upgFromDoc(d.data()||{},d.id))});if((location.hash||"")==="#admin-orders")upgRefresh();if((location.hash||"")==="#admin-inbox"&&!$(".scrim")){route._keep=true;route()}sn.docs.forEach(d=>((d.data()||{}).orders||[]).forEach(o=>ADS.orders.push(cleanOrder(Object.assign({},o,{owner:d.id})))));ADS.orders.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));adRefreshViews()},()=>{});
   adRefreshViews();
 }
-function loadLocal(){ptLoad();wxtMsgLoad();secLoad();secuLoad();houseLoad();promoLoad();prmLoad();nfLoad();pedLoad();staffLoad();modLoad();medLoad();shopOrdersLoad();galLoad();socLoad();fbqLoad();mailLoad();upgLoad();setTimeout(dmInit,200);loadUserContent();loadReviews();UDB=uLocal.get();BIZDB=bizLocal.get();ADS.orders=adLocal.get();ADS.live=ADS.orders.filter(o=>o.status==="Live");adRefreshViews()}
+function loadLocal(){ptLoad();wxtMsgLoad();secLoad();secuLoad();houseLoad();promoLoad();prmLoad();nfLoad();pedLoad();staffLoad();modLoad();fbpGrantsLoad();medLoad();shopOrdersLoad();galLoad();socLoad();fbqLoad();mailLoad();upgLoad();setTimeout(dmInit,200);loadUserContent();loadReviews();UDB=uLocal.get();BIZDB=bizLocal.get();ADS.orders=adLocal.get();ADS.live=ADS.orders.filter(o=>o.status==="Live");adRefreshViews()}
 setTimeout(()=>{if(ADS.mode==="loading"){ADS.mode="local";ADS.admin=!(window.claude&&window.claude.use);ftrAdminSync();loadLocal()}},11000);
 
 
@@ -5929,7 +6056,7 @@ function prmCard(p){const ext=/^https:/.test(p.link);const end=p.ends?new Date(p
     <h3>${esc(p.title)}</h3>${p.text?`<p>${esc(p.text)}</p>`:""}${p.link&&p.btn?`<a class="btn btn-sm pr-btn" href="${esc(p.link)}" ${ext?'target="_blank" rel="noopener"':""}>${esc(p.btn)}${ext?" \u2197":" \u2192"}</a>`:""}
     ${ADS.admin?`<div class="pr-adm">${!prmLive(p)?`<span class="pill">${p.on?"Ended":"Hidden"}</span>`:""}<button class="link" data-prmedit="${esc(p.id)}">Edit</button><button class="link" data-prmtoggle="${esc(p.id)}">${p.on?"Hide":"Show"}</button><button class="link" style="color:var(--bad)" data-prmdel="${esc(p.id)}">Delete</button></div>`:""}</article>`}
 function vPromos(){const st=rwdStats(),live=PROMOLIST.filter(prmLive).sort((a,b)=>a.order-b.order),shown=ADS.admin?PROMOLIST.slice().sort((a,b)=>a.order-b.order):live;
-  const tools=[["star","Featured Ad","$5","per 7 days","Top of its category and in the home page carousel, with a Featured badge.","#dashboard","plans","Feature an ad"],["chart","Bump","$5","each time","Jump back to the top of Newest with a Bumped tag for 24 hours.","#bump-info","","How bumping works"],["store","Business Page","$5","per month","Your own website-style business page with photos, services and reviews.","#businesses","","See business pages"],["megaphone","Advertising","$35+","per month","Banner spots across the site, from thin filter ads to home page features.","#advertise","","See ad spots"]];
+  const tools=[["star","Featured Ad","$5","per 7 days","Top of its category and in the home page carousel, with a Featured badge.","#dashboard","plans","Feature an ad"],["chart","Bump","$5","each time","Jump back to the top of Newest with a Bumped tag for 24 hours.","#bump-info","","How bumping works"],["store","Business website","$20","per month","Your own mini website with Home, About, Store and Contact pages, photos, hours, a map and Call and Message buttons.","#businesses","","See business websites"],["megaphone","Advertising","$35+","per month","Banner spots across the site, from thin filter ads to home page features.","#advertise","","See ad spots"]];
   return `<section class="page-head pr-head"><div class="wrap"><div><div class="crumbs"><a href="#home">Home</a> / Deals &amp; Promotions</div><h1>Deals &amp; Promotions</h1><p>Rewards, specials and ways to get your listings seen on The Big Nickel.</p></div>${ADS.admin?`<button class="btn btn-sell" data-prmedit="">${ico("plus")}Add a promotion</button>`:`<button class="btn btn-sell" data-post>${ico("plus")}List an item</button>`}</div></section>
   <div class="wrap section pr-wrap">
     ${PROMO.on?`<section class="pr-sec"><div class="sec-head"><div><div class="eyebrow">Running now</div><h2>Seller rewards</h2></div></div>
@@ -6664,22 +6791,221 @@ async function mediaUpload(file){
   return {url:URL.createObjectURL(file),type:"video",name:file.name,temp:true};
 }
 function bodyToText(b){return (b||[]).map(([h,t])=>(h?"## "+h+"\n":"")+String(t).replace(/<[^>]+>/g,"")).join("\n\n")}
-function textToBody(t){return String(t||"").split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean).map(chunk=>{const m=chunk.match(/^##\s*(.+?)(?:\n([\s\S]*))?$/);return m?[esc(m[1]),esc(m[2]||"").replace(/\n/g,"<br>")]:["",esc(chunk).replace(/\n/g,"<br>")]})}
+const linkify=h=>h.replace(/https:\/\/[^\s<"]+/g,u=>{const t=u.match(/[.,;:!?)]+$/),url=t?u.slice(0,-t[0].length):u;return `<a href="${url}" target="_blank" rel="noopener nofollow">${url.replace(/^https:\/\/(www\.)?/,"").slice(0,60)}</a>`+(t?t[0]:"")});
+function textToBody(t){return String(t||"").split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean).map(chunk=>{const m=chunk.match(/^##\s*(.+?)(?:\n([\s\S]*))?$/);return m?[esc(m[1]),linkify(esc(m[2]||"")).replace(/\n/g,"<br>")]:["",linkify(esc(chunk)).replace(/\n/g,"<br>")]})}
+/* ================= FEATURED BUSINESS PAGES: section-and-block layout the business owner can edit ================= */
+const FBP_PRICE=20;
+const FBP_TYPES=[["text","Text","edit"],["photo","Photo","camera"],["gallery","Gallery","grid"],["video","Video","play"],["quote","Quote","talk"],["buttons","Buttons","tag"]];
+const fbpHttps=u=>/^https:\/\/[^\s"'<>]+$/i.test(String(u||"").trim())?String(u).trim():"";
+const fbpLink=u=>{u=String(u||"").trim();if(/^tel:[+\d\s().-]{7,20}$/i.test(u)||/^mailto:[^\s"'<>@]+@[^\s"'<>]+$/i.test(u))return u;if(/^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(u))u="https://"+u;return fbpHttps(u)};
+function cleanBlocks(B){const s=(v,n)=>noTags(v==null?"":String(v)).slice(0,n);
+  return (Array.isArray(B)?B:[]).slice(0,40).map(b=>{b=b||{};switch(b.t){
+    case "text":return {t:"text",h:s(b.h,120),x:typeof b.x==="string"?b.x.slice(0,6000):""};
+    case "photo":return {t:"photo",url:safeUrl(b.url),cap:s(b.cap,200),wide:b.wide!==false};
+    case "gallery":return {t:"gallery",h:s(b.h,120),imgs:(Array.isArray(b.imgs)?b.imgs:[]).slice(0,24).map(x=>({url:safeUrl(x&&x.url),cap:s(x&&x.cap,200)})).filter(x=>x.url)};
+    case "video":{const yt=/^[A-Za-z0-9_-]{11}$/.test(b.yt||"")?b.yt:"";return {t:"video",yt,url:yt?"":safeUrl(b.url),cap:s(b.cap,200)}}
+    case "quote":return {t:"quote",x:s(b.x,600),who:s(b.who,80)};
+    case "buttons":return {t:"buttons",items:(Array.isArray(b.items)?b.items:[]).slice(0,4).map(x=>({label:s(x&&x.label,40),url:String(x&&x.url||"").slice(0,300)}))};
+    default:return null}}).filter(Boolean)}
+function cleanStore(L){const s=(v,n)=>noTags(v==null?"":String(v)).trim().slice(0,n);return (Array.isArray(L)?L:[]).slice(0,60).map(x=>({name:s(x&&x.name,80),price:s(x&&x.price,20),img:safeUrl(x&&x.img),desc:s(x&&x.desc,500),link:String(x&&x.link||"").slice(0,300)}))}
+function cleanBizInfo(b){b=b||{};const s=(v,n)=>noTags(v==null?"":String(v)).trim().slice(0,n);
+  return {name:s(b.name,80),phone:s(b.phone,30),email:s(b.email,100),web:s(b.web,200),addr:s(b.addr,160),hours:s(b.hours,600),fb:s(b.fb,200),ig:s(b.ig,200)}}
+/* older Featured Business posts (plain text + photos) become blocks automatically */
+function fbpAutoBlocks(p){const B=[];let cur=null;
+  (p.body||[]).forEach(([h,t])=>{const x=unEsc(String(t||"").replace(/<br\s*\/?>/gi,"\n"));if(h||!cur){cur={t:"text",h:unEsc(h||""),x:""};B.push(cur)}if(x.trim())cur.x+=(cur.x?"\n\n":"")+x.trim()});
+  const imgs=(p.media||[]).filter(m=>m.type!=="video"&&m.url&&m.url!==p.cover).map(m=>({url:m.url,cap:m.caption||""}));
+  (p.media||[]).filter(m=>m.type==="video").forEach(m=>B.push({t:"video",yt:"",url:m.url,cap:m.caption||""}));
+  if(imgs.length===1)B.splice(Math.min(1,B.length),0,{t:"photo",url:imgs[0].url,cap:imgs[0].cap,wide:true});else if(imgs.length)B.push({t:"gallery",h:"Photos",imgs});
+  return cleanBlocks(B.filter(b=>b.t!=="text"||b.h||b.x))}
+const fbpBlocks=p=>(p.blocks&&p.blocks.length)?p.blocks:fbpAutoBlocks(p);
+const fbpText=x=>String(x||"").split(/\n\s*\n/).map(c=>c.trim()).filter(Boolean).map(c=>/^[\u2022\-*] /.test(c)?`<ul>${c.split("\n").map(l=>`<li>${linkify(esc(l.replace(/^[\u2022\-*]\s*/,"")))}</li>`).join("")}</ul>`:`<p>${linkify(esc(c)).replace(/\n/g,"<br>")}</p>`).join("");
+const fbpTel=v=>String(v||"").replace(/[^\d+]/g,"");
+const fbpMaps=a=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a);
+function fbpDirHTML(){const L=POSTS.filter(p=>p.bc==="Featured Business");if(!L.length)return "";
+  return `<section class="fbp-dir"><div class="sec-head" style="margin:0 0 12px"><div><div class="eyebrow">${ico("star","i","width:13px;height:13px")} Featured</div><h2 style="margin:2px 0 0">Local business websites</h2></div><a class="link" href="#dashboard" data-fbpget>Get yours \u00B7 $${FBP_PRICE}/mo</a></div>
+    <div class="fbp-dir-row">${L.slice(0,12).map(p=>{const z=p.biz||{},c=p.cover||((p.media||[]).find(m=>m.type!=="video")||{}).url||"";return `<a class="fbp-dcard" href="#news--${esc(p.id)}"><span class="fbp-dimg">${c?`<img src="${esc(c)}" alt="" loading="lazy">`:artFor(p,"D")}</span><span class="fbp-db"><b>${esc(z.name||unEsc(p.title))}</b><small>${esc(unEsc(p.ex||"").slice(0,90))}</small>${z.addr?`<em>${ico("pin","i","width:12px;height:12px")}${esc(z.addr.split(",").slice(-2).join(",").trim())}</em>`:""}</span></a>`}).join("")}</div></section>`}
+function fbpCanEdit(p){return !!(ADS.admin||(p.owner&&p.owner===meId()))}
+/* plan: paid within the last 31 days, or given by the admin */
+let FBP_GRANTS={};
+function fbpEntitled(){if(ADS.admin)return true;const me=meId();if(me&&FBP_GRANTS[me])return true;
+  return MYUPG.some(u=>u.status==="Paid"&&u.items.some(i=>i.kind==="bizsite")&&(u.paidAt||u.at)+31*864e5>Date.now())}
+function fbpGrantsLoad(){if(ADS.mode==="live"&&ADS.db)ADS.db.doc("settings/bizpages").onSnapshot(sn=>{const g=(sn.exists?sn.data():{}).grants;FBP_GRANTS=g&&typeof g==="object"?g:{}},()=>{});else{const g=(store.get("bizpages",{})||{}).grants;FBP_GRANTS=g&&typeof g==="object"?g:{}}}
+async function fbpGrant(uid,on){const g=Object.assign({},FBP_GRANTS);if(on)g[uid]=true;else delete g[uid];if(ADS.mode==="live")await ADS.db.doc("settings/bizpages").set({grants:g});else store.set("bizpages",{grants:g});FBP_GRANTS=g}
+
+function fbpBlockHTML(b,i){switch(b.t){
+  case "text":return `<section class="fbp-sec fbp-text ${b.h?"":"no-h"}">${b.h?`<h2>${esc(b.h)}</h2>`:""}<div class="fbp-prose">${fbpText(b.x)}</div></section>`;
+  case "photo":return b.url?`<figure class="fbp-sec fbp-photo ${b.wide?"wide":""}"><img src="${esc(b.url)}" alt="${esc(b.cap||"")}" loading="lazy">${b.cap?`<figcaption>${esc(b.cap)}</figcaption>`:""}</figure>`:"";
+  case "gallery":return b.imgs.length?`<section class="fbp-sec fbp-gal">${b.h?`<h2>${esc(b.h)}</h2>`:""}<div class="fbp-grid n${Math.min(b.imgs.length,4)}">${b.imgs.map((x,j)=>`<a href="${esc(x.url)}" target="_blank" rel="noopener" class="${j===0&&b.imgs.length>4?"big":""}"><img src="${esc(x.url)}" alt="${esc(x.cap||"")}" loading="lazy">${x.cap&&!/^[^\s]{18,}$/.test(x.cap)?`<span>${esc(x.cap)}</span>`:""}</a>`).join("")}</div></section>`:"";
+  case "video":return b.yt||b.url?`<figure class="fbp-sec fbp-video"><div class="fbp-vbox">${b.yt?`<iframe src="https://www.youtube-nocookie.com/embed/${b.yt}?rel=0&amp;modestbranding=1" title="${esc(b.cap||"Video")}" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy" frameborder="0"></iframe>`:`<video src="${esc(b.url)}" controls preload="metadata" playsinline></video>`}</div>${b.cap?`<figcaption>${esc(b.cap)}</figcaption>`:""}</figure>`:"";
+  case "quote":return b.x?`<blockquote class="fbp-sec fbp-quote"><p>\u201C${esc(b.x)}\u201D</p>${b.who?`<cite>${esc(b.who)}</cite>`:""}</blockquote>`:"";
+  case "buttons":{const L=b.items.map(x=>({label:x.label,url:fbpLink(x.url)})).filter(x=>x.label&&x.url);return L.length?`<div class="fbp-sec fbp-btns">${L.map((x,j)=>`<a class="btn ${j?"btn-ghost":"btn-accent"}" href="${esc(x.url)}" ${/^https:/.test(x.url)?'target="_blank" rel="noopener"':""}>${esc(x.label)}</a>`).join("")}</div>`:""}
+  default:return ""}}
+function fbpContactHTML(p){const z=p.biz||{},web=fbpLink(z.web),fb=fbpHttps(z.fb),ig=fbpHttps(z.ig),tel=fbpTel(z.phone);
+  if(!(z.phone||z.email||web||z.addr||z.hours||fb||ig))return "";
+  return `<section class="fbp-contact" id="fbpContact"><div class="fbp-cin"><div class="fbp-cl"><div class="eyebrow">Get in touch</div><h2>${esc(z.name||unEsc(p.title))}</h2>
+    <ul class="fbp-clist">${z.addr?`<li>${ico("pin","i")}<a href="${fbpMaps(z.addr)}" target="_blank" rel="noopener">${esc(z.addr)}</a></li>`:""}${tel?`<li>${ico("phone","i")}<a href="tel:${esc(tel)}">${esc(z.phone)}</a></li>`:""}${z.email&&/@/.test(z.email)?`<li>${ico("mail","i")}<a href="mailto:${esc(z.email)}">${esc(z.email)}</a></li>`:""}${web?`<li>${ico("home","i")}<a href="${esc(web)}" target="_blank" rel="noopener">${esc(web.replace(/^https:\/\/(www\.)?/,"").replace(/\/$/,""))}</a></li>`:""}</ul>
+    ${fb||ig?`<div class="fbp-soc">${fb?`<a href="${esc(fb)}" target="_blank" rel="noopener">Facebook \u2197</a>`:""}${ig?`<a href="${esc(ig)}" target="_blank" rel="noopener">Instagram \u2197</a>`:""}</div>`:""}
+    <div class="fbp-cbtn">${tel?`<a class="btn btn-accent" href="tel:${esc(tel)}">${ico("phone","i")}Call</a>`:""}${p.owner&&p.owner!==meId()?`<button type="button" class="btn fbp-ghost" data-dmstart="${esc(p.owner)}" data-dmname="${esc(z.name||unEsc(p.title))}" data-dmctx="${esc(unEsc(p.title))}">${ico("talk","i")}Message</button>`:""}${z.addr?`<a class="btn fbp-ghost" href="${fbpMaps(z.addr)}" target="_blank" rel="noopener">${ico("pin","i")}Directions</a>`:""}${web?`<a class="btn fbp-ghost" href="${esc(web)}" target="_blank" rel="noopener">Website \u2197</a>`:""}</div></div>
+    ${z.hours?`<div class="fbp-hours"><h3>Hours</h3>${z.hours.split("\n").filter(l=>l.trim()).map(l=>{const m=l.match(/^([^:]{1,24}):\s*(.+)$/);return m?`<div class="fbp-hr"><span>${esc(m[1])}</span><b>${esc(m[2])}</b></div>`:`<div class="fbp-hr"><span>${esc(l)}</span></div>`}).join("")}</div>`:""}
+    ${z.addr?`<div class="fbp-map"><iframe title="Map to ${esc(z.name||"the business")}" src="https://www.google.com/maps?q=${encodeURIComponent(z.addr)}&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`:""}</div></section>`}
+const FBP_PAGES=[["","Home"],["about","About"],["store","Store"],["contact","Contact"]];
+function fbpStoreHTML(p){const z=p.biz||{},tel=fbpTel(z.phone),L=(p.store||[]).filter(x=>x.name);
+  if(!L.length)return `<div class="fbp"><div class="empty" style="margin:30px 0">Nothing in the store yet.</div></div>`;
+  return `<div class="fbp"><section class="fbp-sec fbp-store">${L.map(x=>{const ln=fbpLink(x.link);return `<article class="fbp-item">${x.img?`<div class="fbp-item-img"><img src="${esc(x.img)}" alt="${esc(x.name)}" loading="lazy"></div>`:`<div class="fbp-item-img none">${ico("tag","i","width:28px;height:28px")}</div>`}<div class="fbp-item-b"><h3>${esc(x.name)}</h3>${x.price?`<div class="fbp-price">${esc(/^[\d.,]+$/.test(x.price)?"$"+x.price:x.price)}</div>`:""}${x.desc?`<p>${esc(x.desc)}</p>`:""}
+    <div class="fbp-item-a">${ln?`<a class="btn btn-accent btn-sm" href="${esc(ln)}" ${/^https:/.test(ln)?'target="_blank" rel="noopener"':""}>${/^tel:/.test(ln)?"Call to order":"Buy / order"}</a>`:tel?`<a class="btn btn-accent btn-sm" href="tel:${esc(tel)}">Call to order</a>`:z.email?`<a class="btn btn-accent btn-sm" href="mailto:${esc(z.email)}?subject=${encodeURIComponent("Question about "+x.name)}">Ask about this</a>`:""}</div></div></article>`}).join("")}</section></div>`}
+function fbpPage(p,more,sub){sub=["about","store","contact"].includes(sub)?sub:"";const B=sub==="about"?(p.about||[]):fbpBlocks(p),z=p.biz||{},tel=fbpTel(z.phone),web=fbpLink(z.web),cover=p.cover||((p.media||[]).find(m=>m.type!=="video")||{}).url||(B.find(b=>b.t==="photo"&&b.url)||{}).url||"";
+  const hasC=!!(z.phone||z.email||web||z.addr||z.hours),base="#news--"+p.id;
+  const tabs=FBP_PAGES.filter(([k])=>!k||(k==="about"&&(p.about||[]).length)||(k==="store"&&(p.store||[]).some(x=>x.name))||(k==="contact"&&hasC));
+  const nav=tabs.length>1?`<nav class="fbp-nav" aria-label="${esc(z.name||unEsc(p.title))} pages"><div class="fbp-nav-in"><b class="fbp-nav-name">${esc(z.name||unEsc(p.title))}</b>${tabs.map(([k,l])=>`<a href="${base}${k?"/"+k:""}" data-fbptab class="${k===sub?"on":""}" ${k===sub?'aria-current="page"':""}>${l}</a>`).join("")}${tel?`<a class="fbp-nav-call" href="tel:${esc(tel)}">${ico("phone","i")}<span>${esc(z.phone)}</span></a>`:""}</div></nav>`:"";
+  const body=sub==="store"?fbpStoreHTML(p):sub==="contact"?(fbpContactHTML(p)||`<div class="fbp"><div class="empty" style="margin:30px 0">No contact details yet.</div></div>`):`<div class="fbp">${B.map(fbpBlockHTML).join("")||`<div class="empty" style="margin:30px 0">This page is still being written.</div>`}</div>${sub?"":fbpContactHTML(p)}`;
+  return `<section class="fbp-hero ${cover?"":"no-img"} ${sub?"sub":""}">${cover?`<img class="fbp-hero-img" src="${esc(cover)}" alt="">`:`<div class="fbp-hero-img">${artFor(p,"H")}</div>`}<div class="fbp-hero-shade"></div>
+    <div class="fbp-hero-in"><div class="crumbs"><a href="#home">Home</a> / <a href="#news">News &amp; Marketplace</a> / Featured Business</div><span class="fbp-badge">${ico("star","i","width:14px;height:14px")}Featured Business</span><h1>${p.title}</h1>${p.ex?`<p class="fbp-lead">${p.ex}</p>`:""}
+      <div class="fbp-hbtn">${tel?`<a class="btn btn-accent" href="tel:${esc(tel)}">${ico("phone","i")}Call ${esc(z.phone)}</a>`:""}${web?`<a class="btn fbp-ghost" href="${esc(web)}" target="_blank" rel="noopener">Visit website \u2197</a>`:""}${z.addr?`<a class="btn fbp-ghost" href="${fbpMaps(z.addr)}" target="_blank" rel="noopener">${ico("pin","i")}Directions</a>`:""}${p.owner&&p.owner!==meId()?`<button type="button" class="btn fbp-ghost" data-dmstart="${esc(p.owner)}" data-dmname="${esc(z.name||unEsc(p.title))}" data-dmctx="${esc(unEsc(p.title))}">${ico("talk","i")}Message</button>`:""}${hasC&&!sub?`<a class="btn fbp-ghost" href="${base}/contact" data-fbptab>Contact &amp; hours</a>`:""}${fbpCanEdit(p)?`<a class="btn fbp-ghost" href="#dashboard" data-fbpedit="${esc(p.id)}">${ico("edit","i")}Edit this page</a>`:""}</div>
+      <div class="fbp-meta">By ${esc(pAuthor(p))} \u00B7 ${p.d}</div></div></section>
+  ${nav}${sub?`<div class="fbp-subh"><h2>${FBP_PAGES.find(x=>x[0]===sub)[1]}</h2></div>`:""}
+  ${body}
+  <div class="fbp-foot"><div class="fbp-share">${shareRow(p.title)}</div>
+    ${fbpCanEdit(p)?"":`<div class="fbp-cta">${ico("star","i","width:20px;height:20px")}<span><b>Own a local business?</b> Get your own business website like this one, with Home, About, Store and Contact pages, photos, video, hours and a map, that you can edit any time. $${FBP_PRICE}/month.</span><a class="btn btn-accent" href="#dashboard" data-fbpget>Get yours</a></div>`}</div>
+  <section class="section band"><div class="wrap wide"><div class="sec-head"><h2>More from The Big Nickel</h2><a class="link" href="#news">All posts</a></div><div class="bgrid">${more.map(postCard).join("")}</div></div></section>`}
+
+/* ---------- block editor (dashboard) ---------- */
+const fbpArr=()=>PE._pg==="about"?(PE.about=PE.about||[]):PE.blocks;
+function fbpEditorHTML(p){const pg=p._pg||"home",B=pg==="about"?(p.about||[]):(p.blocks||[]),z=p.biz||{};const f=(k,l,ph,o)=>`<div class="fld"><label for="fbz-${k}">${l}</label>${o&&o.area?`<textarea id="fbz-${k}" data-fbz="${k}" rows="${o.area}" placeholder="${esc(ph)}">${esc(z[k]||"")}</textarea>`:`<input id="fbz-${k}" data-fbz="${k}" value="${esc(z[k]||"")}" placeholder="${esc(ph)}" ${o&&o.type?`type="${o.type}"`:""}>`}</div>`;
+  const tl=t=>(FBP_TYPES.find(x=>x[0]===t)||[t,t])[1];
+  const cov=`<section class="panel fbp-ed fbp-hero-ed" style="margin:0"><div class="sec-head" style="margin-bottom:8px"><div><h3 style="margin:0">Top of your website (hero)</h3><p class="meta" style="margin:4px 0 0">The big cover photo across the top of every page, with your title and summary on it. Wide photos look best. Your page menu sits right under it.</p></div></div>
+      <div class="fbp-cov">${p.cover?`<img src="${esc(p.cover)}" alt="Cover photo">`:`<div class="fbp-cov-none">${ico("camera","i","width:24px;height:24px")}No cover photo yet</div>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${p.cover?"Change":"Upload"} cover<input type="file" accept="image/*" data-fbpfile="cover" hidden></label>${p.cover?`<button type="button" class="btn btn-ghost btn-sm" data-fbp="covdel">Remove</button>`:""}</div></section>`;
+  const tabs=`<div class="fbp-etabs" role="tablist">${[["home","Home"],["about","About"],["store","Store"],["contact","Contact"]].map(([k,l])=>`<button type="button" role="tab" class="${pg===k?"on":""}" aria-selected="${pg===k}" data-fbp="pg" data-pg="${k}">${l}${k==="about"&&(p.about||[]).length?` <small>${p.about.length}</small>`:k==="store"&&(p.store||[]).length?` <small>${p.store.length}</small>`:""}</button>`).join("")}</div><p class="meta" style="margin:-4px 0 0">Your website has up to four pages. Pages you leave empty are hidden from visitors.</p>`;
+  if(pg==="store")return cov+tabs+`<section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">Store</h3><p class="meta" style="margin:4px 0 0">Products or services with a photo and price. Add a link for online ordering; otherwise the button calls or emails you.</p></div></div>
+    <div class="fbp-blist">${(p.store||[]).map((x,j)=>`<div class="fbp-bk"><div class="fbp-bkh"><b>${ico("tag","i")}Item ${j+1}</b><span><button type="button" class="ibtn" data-fbp="sup" data-i="${j}" ${j?"":"disabled"} aria-label="Move up">${ico("down","i","width:14px;height:14px;transform:rotate(180deg)")}</button><button type="button" class="ibtn" data-fbp="sdown" data-i="${j}" ${j<p.store.length-1?"":"disabled"} aria-label="Move down">${ico("down","i","width:14px;height:14px")}</button><button type="button" class="ibtn" data-fbp="sdel" data-i="${j}" aria-label="Remove item">${ico("x","i","width:14px;height:14px")}</button></span></div>
+      <div class="fbp-pic">${x.img?`<img src="${esc(x.img)}" alt="">`:`<span>${ico("camera","i")}</span>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${x.img?"Replace":"Add photo"}<input type="file" accept="image/*" data-fbpfile="store:${j}" hidden></label></div>
+      <div class="two"><div class="fld"><label>Name</label><input data-fbs="${j}.name" value="${esc(x.name)}" placeholder="Large breakfast burrito"></div><div class="fld"><label>Price</label><input data-fbs="${j}.price" value="${esc(x.price)}" placeholder="12.95 or From $40"></div></div>
+      <div class="fld"><label>Description</label><textarea data-fbs="${j}.desc" rows="2" placeholder="What it is and what's included">${esc(x.desc)}</textarea></div>
+      <div class="fld"><label>Order link (optional)</label><input data-fbs="${j}.link" value="${esc(x.link)}" placeholder="yourbusiness.com/order"></div></div>`).join("")||`<div class="empty" style="padding:18px">No items yet.</div>`}</div>
+    <div class="fbp-add"><button type="button" class="btn btn-ghost btn-sm" data-fbp="sadd">${ico("plus","i")}Add an item</button></div><p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`;
+  if(pg==="contact")return cov+tabs+`<section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">Contact, hours &amp; map</h3><p class="meta" style="margin:4px 0 0">Shown on your Contact page and at the bottom of your Home page, with Call, Directions and Website buttons at the top. Leave anything blank to hide it.</p></div></div>
+      <div class="two">${f("name","Business name","Ogden Coffee Co.")}${f("phone","Phone","(801) 555-0123",{type:"tel"})}</div>
+      <div class="two">${f("email","Email","hello@yourbusiness.com",{type:"email"})}${f("web","Website","yourbusiness.com")}</div>
+      ${f("addr","Address (for the map and directions)","2510 Washington Blvd, Ogden, UT")}
+      ${f("hours","Hours (one line per day)","Mon\u2013Fri: 8am \u2013 6pm\nSat: 9am \u2013 4pm\nSun: Closed",{area:4})}
+      <div class="two">${f("fb","Facebook page link","https://facebook.com/\u2026")}${f("ig","Instagram link","https://instagram.com/\u2026")}</div></section>`;
+  return cov+tabs+`
+    <section class="panel fbp-ed" style="margin:0"><div class="sec-head" style="margin-bottom:6px"><div><h3 style="margin:0">${pg==="about"?"About page":"Home page"} sections</h3><p class="meta" style="margin:4px 0 0">Stack sections in any order. Use the arrows to move them.</p></div></div>
+      <div class="fbp-blist">${B.length?B.map((b,i)=>`<div class="fbp-bk"><div class="fbp-bkh"><b>${ico((FBP_TYPES.find(x=>x[0]===b.t)||[0,0,"edit"])[2],"i")}${tl(b.t)}</b><span><button type="button" class="ibtn" data-fbp="up" data-i="${i}" ${i?"":"disabled"} aria-label="Move up">${ico("down","i","width:14px;height:14px;transform:rotate(180deg)")}</button><button type="button" class="ibtn" data-fbp="down" data-i="${i}" ${i<B.length-1?"":"disabled"} aria-label="Move down">${ico("down","i","width:14px;height:14px")}</button><button type="button" class="ibtn" data-fbp="del" data-i="${i}" aria-label="Remove section">${ico("x","i","width:14px;height:14px")}</button></span></div>${fbpBlockFields(b,i)}</div>`).join(""):`<div class="empty" style="padding:18px">No sections yet. Add one below.</div>`}</div>
+      <div class="fbp-add"><span class="meta">Add a section:</span>${FBP_TYPES.map(([t,l,ic])=>`<button type="button" class="btn btn-ghost btn-sm" data-fbp="add" data-t="${t}">${ico(ic,"i")}${l}</button>`).join("")}</div><p class="meta" id="fbpUp" hidden style="margin:8px 0 0"></p></section>`}
+function fbpBlockFields(b,i){const v=(k,l,ph,o)=>`<div class="fld"><label>${l}</label>${o&&o.area?`<textarea data-fbb="${i}.${k}" rows="${o.area}" placeholder="${esc(ph||"")}">${esc(b[k]||"")}</textarea>`:`<input data-fbb="${i}.${k}" value="${esc(b[k]||"")}" placeholder="${esc(ph||"")}">`}</div>`;
+  const pic=(url,lab,attr)=>`<div class="fbp-pic">${url?`<img src="${esc(url)}" alt="">`:`<span>${ico("camera","i")}</span>`}<label class="btn btn-ghost btn-sm">${ico("upload","i")}${url?"Replace":lab}<input type="file" accept="image/*" ${attr} hidden></label></div>`;
+  switch(b.t){
+    case "text":return v("h","Heading (optional)","About us")+v("x","Text","Tell people about your business. Leave a blank line between paragraphs. Start lines with \u2022 for a bullet list.",{area:6});
+    case "photo":return pic(b.url,"Upload photo",`data-fbpfile="photo:${i}"`)+v("cap","Caption (optional)","");
+    case "gallery":return v("h","Heading (optional)","Photos")+`<div class="fbp-gal-ed">${b.imgs.map((x,j)=>`<div class="fbp-gi"><img src="${esc(x.url)}" alt=""><button type="button" class="ibtn" data-fbp="gdel" data-i="${i}" data-j="${j}" aria-label="Remove photo">${ico("x","i","width:12px;height:12px")}</button></div>`).join("")}<label class="fbp-gadd">${ico("plus","i")}Add photos<input type="file" accept="image/*" multiple data-fbpfile="gallery:${i}" hidden></label></div>`;
+    case "video":return `<div class="fld"><label>YouTube link</label><input data-fbb="${i}.ytlink" value="${b.yt?"https://youtu.be/"+esc(b.yt):""}" placeholder="https://youtu.be/\u2026"></div>${b.url?`<p class="meta" style="margin:0">Uploaded video: ${esc(b.url.split("/").pop().slice(0,40))} <button type="button" class="link" data-fbp="vdel" data-i="${i}">remove</button></p>`:`<label class="btn btn-ghost btn-sm" style="align-self:flex-start">${ico("upload","i")}Or upload a video<input type="file" accept="video/*" data-fbpfile="video:${i}" hidden></label>`}`+v("cap","Caption (optional)","");
+    case "quote":return v("x","Quote","The best breakfast burrito in Weber County!",{area:2})+v("who","Who said it","Jamie R., customer");
+    case "buttons":return `<div class="fbp-bt-ed">${[0,1,2].map(j=>{const it=b.items[j]||{};return `<div class="two"><div class="fld"><label>Button ${j+1} text</label><input data-fbb="${i}.items.${j}.label" value="${esc(it.label||"")}" placeholder="${["Order online","See our menu","Book a table"][j]}"></div><div class="fld"><label>Link</label><input data-fbb="${i}.items.${j}.url" value="${esc(it.url||"")}" placeholder="yourbusiness.com/order"></div></div>`}).join("")}</div>`;
+    default:return ""}}
+function fbpNew(t){return {text:{t,h:"",x:""},photo:{t,url:"",cap:"",wide:true},gallery:{t,h:"",imgs:[]},video:{t,yt:"",url:"",cap:""},quote:{t,x:"",who:""},buttons:{t,items:[]}}[t]}
+function fbpEnsure(){if(!PE)return;PE.about=PE.about||[];PE.store=PE.store||[];PE._pg=PE._pg||"home";if(!PE.blocks||!PE.blocks.length)PE.blocks=fbpAutoBlocks(Object.assign({},PE,{body:textToBody(PE.text||"")}));if(!PE.biz)PE.biz=cleanBizInfo({});
+  if(!PE.cover&&PE.coverIdx!=null&&PE.media&&PE.media[PE.coverIdx])PE.cover=PE.media[PE.coverIdx].url}
+function fbpUpsellHTML(){return `<div class="fbp-upsell">${ico("star","i","width:22px;height:22px")}<div><b>Featured Business page \u00B7 $${FBP_PRICE}/month</b><p>Turn this post into a full business page: big cover photo, text and photo sections, gallery, video, customer quotes, buttons, and your phone, hours and map at the bottom. Edit it any time.</p></div><button type="button" class="btn btn-accent" data-plan="Featured Business page">Get it \u00B7 $${FBP_PRICE}/mo</button></div>`}
+document.addEventListener("input",e=>{const el=e.target;if(!PE||!el.dataset)return;
+  if(el.dataset.fbz){PE.biz=PE.biz||{};PE.biz[el.dataset.fbz]=el.value;return}
+  if(el.dataset.fbs){const [j,k]=el.dataset.fbs.split("."),x=(PE.store||[])[+j];if(x)x[k]=el.value;return}
+  if(el.dataset.fbb){const [i,...path]=el.dataset.fbb.split("."),b=fbpArr()[+i];if(!b)return;
+    if(path[0]==="ytlink"){b.yt=ytId(el.value.trim());return}
+    if(path[0]==="items"){const j=+path[1];while(b.items.length<=j)b.items.push({label:"",url:""});b.items[j][path[2]]=el.value;return}
+    b[path[0]]=el.value}});
+document.addEventListener("click",e=>{const c=e.target.closest("[data-fbp]");if(!c||!PE)return;e.preventDefault();const a=c.dataset.fbp,i=+c.dataset.i,B=fbpArr(),S=PE.store=PE.store||[];
+  if(a==="pg"){PE._pg=c.dataset.pg;peRender();return}
+  if(a==="sadd"){S.push({name:"",price:"",img:"",desc:"",link:""});peRender();return}
+  if(a==="sdel"){S.splice(i,1);peRender();return}if(a==="sup"&&i>0){[S[i-1],S[i]]=[S[i],S[i-1]];peRender();return}if(a==="sdown"&&i<S.length-1){[S[i+1],S[i]]=[S[i],S[i+1]];peRender();return}
+  if(a==="add"){B.push(fbpNew(c.dataset.t));peRender();setTimeout(()=>{const L=$$(".fbp-bk");if(L.length)L[L.length-1].scrollIntoView({block:"center",behavior:"smooth"})},30);return}
+  if(a==="up"&&i>0)[B[i-1],B[i]]=[B[i],B[i-1]];if(a==="down"&&i<B.length-1)[B[i+1],B[i]]=[B[i],B[i+1]];
+  if(a==="del")B.splice(i,1);if(a==="gdel")B[i].imgs.splice(+c.dataset.j,1);if(a==="vdel")B[i].url="";if(a==="covdel")PE.cover="";peRender()});
+document.addEventListener("change",async e=>{const el=e.target;if(!el.dataset||!el.dataset.fbpfile||!PE)return;const [kind,ix]=el.dataset.fbpfile.split(":"),files=[...el.files],m=$("#fbpUp");if(!files.length)return;
+  const say=(t,bad)=>{if(m){m.hidden=false;m.style.color=bad?"var(--bad)":"";m.textContent=t}};say("Uploading\u2026");
+  try{if(kind==="cover"){PE.cover=(await mediaUpload(files[0])).url}
+    else if(kind==="store"){PE.store[+ix].img=(await mediaUpload(files[0])).url}
+    else if(kind==="photo"){fbpArr()[+ix].url=(await mediaUpload(files[0])).url}
+    else if(kind==="video"){const r=await mediaUpload(files[0]);if(r.type!=="video")throw {message:"That isn't a video file."};fbpArr()[+ix].url=r.url}
+    else if(kind==="gallery"){for(const f of files.slice(0,24)){const r=await mediaUpload(f);if(r.type==="image")fbpArr()[+ix].imgs.push({url:r.url,cap:""})}}
+    peRender();toast("Uploaded")}catch(x){say("That upload didn't work. "+((x&&x.message)||""),1)}});
+document.addEventListener("click",e=>{const g=e.target.closest("[data-fbptab]");if(g&&!e.metaKey&&!e.ctrlKey){const h=g.getAttribute("href");if(h===location.hash){e.preventDefault();return}const nav=$(".fbp-nav");const stay=nav&&nav.getBoundingClientRect().top<=2;e.preventDefault();route._keep=true;location.hash=h;setTimeout(()=>{const n=$(".fbp-nav");if(n)window.scrollTo(0,stay?n.offsetTop:0)},30);return}
+  const ed=e.target.closest("[data-fbpedit]");if(ed){e.preventDefault();const p=MYPOSTS.find(x=>x.id===ed.dataset.fbpedit);
+    if(p){PE=Object.assign(JSON.parse(JSON.stringify(p)),{isNew:false,text:p.text||bodyToText(p.body)});fbpEnsure();dtab="posts";location.hash="#dashboard";route()}
+    else if(ADS.admin){const q=ALLUSERPOSTS.find(x=>x.id===ed.dataset.fbpedit);if(q){PE=Object.assign(JSON.parse(JSON.stringify(q)),{isNew:false,_owner:q.owner,text:q.text||bodyToText(q.body)});fbpEnsure();dtab="posts";location.hash="#dashboard";route()}}return}
+  const mine=e.target.closest("[data-fbpmine]");if(mine){e.preventDefault();const q=MYPOSTS.find(x=>x.bc==="Featured Business");dtab="posts";
+    PE=q?Object.assign(JSON.parse(JSON.stringify(q)),{isNew:false,text:q.text||bodyToText(q.body)}):{isNew:true,id:"fb"+Date.now().toString(36),title:"",bc:"Featured Business",ex:"",text:"",media:[],coverIdx:null,status:"Draft",blocks:[fbpNew("text")],about:[],store:[],biz:cleanBizInfo({}),_pg:"home"};fbpEnsure();location.hash="#dashboard";route();return}
+  const gt=e.target.closest("[data-fbpget]");if(gt){e.preventDefault();if(!meId()){toast("Sign in or create a free account first.");if(window.BN_AUTH)BN_AUTH.open("join");return}
+    dtab="posts";PE={isNew:true,id:"fb"+Date.now().toString(36),title:"",bc:"Featured Business",ex:"",text:"",media:[],coverIdx:null,status:"Draft",blocks:[fbpNew("text")],about:[],store:[],biz:cleanBizInfo({}),_pg:"home"};location.hash="#dashboard";route()}});
+
+/* ---------- admin: hand a Featured Business page to the business owner's account ---------- */
+function fbpGiveModal(pid){const p=MYPOSTS.find(x=>x.id===pid);if(!p||!ADS.admin)return;const U=allUsers().filter(u=>UDB[u.id]&&u.id!==meId()&&u.status!=="Banned");
+  openModal(`<form class="form" id="fbpGive" data-pid="${esc(pid)}"><div class="eyebrow">Featured Business page</div><h2>Give \u201C${esc(unEsc(p.title))}\u201D to its owner</h2>
+    <p class="meta" style="margin:0">The page moves to their account. They can edit it from <b>My blog posts</b> in their dashboard, and you can still edit or hide it from Admin \u2192 Blog posts. Their page plan is turned on for free, so they can keep editing and publishing it.</p>
+    <div class="fld"><label for="fbpGiveU">Member</label><select id="fbpGiveU" required><option value="">Choose the business owner\u2026</option>${U.sort((a,b)=>a.name.localeCompare(b.name)).map(u=>`<option value="${esc(u.id)}">${esc(u.name)}${u.email?" \u00B7 "+esc(u.email):""}</option>`).join("")}</select></div>
+    ${U.length?"":`<p class="meta" style="margin:0;color:var(--bad)">No member accounts yet. Ask the owner to sign up first.</p>`}
+    <p class="meta" id="fbpGiveMsg" hidden style="margin:0"></p><div class="acts"><button type="button" class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-accent">Give it to them</button></div></form>`,true)}
+document.addEventListener("submit",async e=>{if(e.target.id!=="fbpGive"||!ADS.admin)return;e.preventDefault();const f=e.target,uid=$("#fbpGiveU").value,m=$("#fbpGiveMsg"),btn=f.querySelector("button:not([data-close])");if(!uid)return;
+  const p=MYPOSTS.find(x=>x.id===f.dataset.pid);if(!p)return;btn.disabled=true;
+  try{const post=Object.assign(JSON.parse(JSON.stringify(p)),{owner:uid,updated:Date.now()}),u=userById(uid);if(u&&u.name)post.author=u.name;
+    if(ADS.mode==="live"){const ref=ADS.db.doc("userposts/"+uid),d=await ref.get(),cur=d.exists?d.data():{};const L=(Array.isArray(cur.posts)?cur.posts:[]).filter(x=>x&&x.id!==post.id);L.unshift(post);await ref.set(Object.assign({},cur,{posts:L}))}
+    else{const all=store.get("otherposts",{})||{};(all[uid]=all[uid]||[]).unshift(post);store.set("otherposts",all)}
+    await fbpGrant(uid,true);await modSet("posts",[post],"approved");
+    MYPOSTS=MYPOSTS.filter(x=>x.id!==p.id);await saveMyPosts();closeModal();toast("Given to "+((u&&u.name)||"the member"));peRender()}
+  catch(x){btn.disabled=false;m.hidden=false;m.style.color="var(--bad)";m.textContent="That didn't finish. "+((x&&x.message)||"")}});
+
+/* ---------- admin: move every site, imported and newsroom post into "My blog posts" so it can be edited there ---------- */
+function blogHtmlToText(html){const doc=new DOMParser().parseFromString("<div>"+html+"</div>","text/html"),media=[],out=[];
+  const addImg=(im,cap)=>{const u=(im.getAttribute("src")||"").trim();if(/^https:\/\//.test(u)&&!media.some(m=>m.url===u))media.push({url:u,type:"image",caption:String(cap||im.getAttribute("alt")||"").trim().slice(0,200)})};
+  const txt=n=>{let r="";n.childNodes.forEach(c=>{if(c.nodeType===3)r+=c.nodeValue;else if(c.nodeType===1){const t=c.tagName;if(t==="BR")r+="\n";else if(t==="IMG")addImg(c);else if(t==="A"){const h=(c.getAttribute("href")||"").trim(),x=txt(c).trim();r+=/^https:\/\//.test(h)?(x&&x!==h?x+": "+h:h):x}else r+=txt(c)}});return r};
+  const walk=n=>n.childNodes.forEach(c=>{if(c.nodeType===3){const t=c.nodeValue.trim();if(t)out.push(t);return}if(c.nodeType!==1)return;const t=c.tagName;
+    if(t==="FIGURE"){const fc=c.querySelector("figcaption");c.querySelectorAll("img").forEach(im=>addImg(im,fc&&fc.textContent));return}
+    if(t==="IMG"){addImg(c);return}
+    if(t==="IFRAME"){const id=ytId(c.getAttribute("src")||"");if(id)out.push("Watch the video: https://www.youtube.com/watch?v="+id);return}
+    if(/^H[1-6]$/.test(t)){const x=txt(c).trim();if(x)out.push("## "+x);return}
+    if(t==="UL"||t==="OL"){const L=[...c.children].filter(x=>x.tagName==="LI").map(li=>"\u2022 "+txt(li).replace(/\s+/g," ").trim()).filter(x=>x.length>2);if(L.length)out.push(L.join("\n"));return}
+    if((t==="DIV"||t==="SECTION"||t==="BLOCKQUOTE")&&c.querySelector("p,div,figure,ul,ol,h1,h2,h3,h4,h5,h6,iframe")){walk(c);return}
+    const x=txt(c).replace(/[ \t]+/g," ").replace(/\n /g,"\n").trim();if(x)out.push(x)});
+  walk(doc.body.firstChild);return {text:out.join("\n\n").slice(0,20000),media:media.slice(0,40)}}
+function blogAdoptable(){if(!ADS.admin)return [];const have=new Set(MYPOSTS.map(p=>p.id)),L=[];
+  (POSTS_BASE||[]).forEach(b=>{const e=PEDIT[b.id]||{};if(!e.hidden&&!have.has(cleanId(b.id)))L.push({kind:"site",b,e})});
+  NF.filter(x=>x.kind==="post"&&x.title&&!x.hidden&&!have.has(cleanId("nf-"+x.id))).forEach(x=>L.push({kind:"nf",x}));return L}
+async function blogAdopt(){const todo=blogAdoptable();if(!todo.length)return 0;const now=Date.now(),author=(MYPROF||PROF_DEFAULT).name,add=[];
+  const fmt=ts=>new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  todo.forEach(it=>{let id,title,ex,bc,text,media=[],cover="",ts,m;
+    if(it.kind==="site"){const b=it.b,e=it.e;id=b.id;title=unEsc(e.title||b.title);ex=unEsc(e.ex||b.ex);bc=e.bc||b.bc;ts=b.ts||+new Date(b.d)||now;m=b.m;
+      if(e.text&&!String(b.id).startsWith("wp-"))text=e.text;
+      else if(String(b.id).startsWith("wp-")){const r=blogHtmlToText(b.body.map(([h,t])=>(h?"<h2>"+h+"</h2>":"")+t).join(""));text=r.text;media=r.media}
+      else text=apsBodyText(b.body);
+      cover=safeHttps(b.xcover||"")}
+    else{const x=it.x;id="nf-"+x.id;title=x.title;ex=x.summary;bc=x.bc;text=x.text;ts=x.at;m=x.m}
+    let coverIdx=null;if(cover){coverIdx=media.findIndex(z=>z.url===cover);if(coverIdx<0){media.unshift({url:cover,type:"image",caption:""});coverIdx=0}}
+    const words=String(text||"").split(/\s+/).filter(Boolean).length;
+    add.push({id:cleanId(id),title:String(title||"Untitled").slice(0,140),bc:BLOG_CATEGORIES.includes(bc)?bc:"News & Updates",ex:String(ex||"").slice(0,300),text:text||"",body:textToBody(text||""),media,cover,coverIdx,status:"Published",author,cat:"classifieds",m:m||Math.max(1,Math.round(words/220)),ts,d:fmt(ts),updated:now})});
+  MYPOSTS=MYPOSTS.concat(add).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  await saveMyPosts();
+  await modSet("posts",add.map(p=>Object.assign({owner:meId()},p)),"approved");
+  // hide the old copies so each post shows once on News (nothing is deleted)
+  const site=todo.filter(t=>t.kind==="site");
+  if(site.length){site.forEach(t=>{PEDIT[t.b.id]=Object.assign({title:"",ex:"",bc:"",author:"",tags:[],text:"",at:now},PEDIT[t.b.id]||{},{hidden:true,at:now})});await pedSave()}
+  for(const t of todo.filter(t=>t.kind==="nf"))await apsNFWrite(t.x.id,{hidden:true});
+  if(ADS.mode!=="live"){ALLUSERPOSTS=MYPOSTS.slice();syncUserPosts()}
+  return add.length}
 function dashPosts(){
   if(PE)return postEditor();
-  return `<div class="dash-head"><div><h2>My blog posts</h2><p class="meta" style="margin:4px 0 0">Share stories, tips and news with the community. Published posts appear on the News page.</p></div><button class="btn btn-accent" data-pe="new">${ico("plus")}New post</button></div>
+  return `<div class="dash-head"><div><h2>My blog posts</h2><p class="meta" style="margin:4px 0 0">Share stories, tips and news with the community. Published posts appear on the News page.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap">${MYPOSTS.some(x=>x.bc==="Featured Business")&&!ADS.admin?"":`<button class="btn btn-ghost" data-fbpget>${ico("store","i")}Business website</button>`}${(()=>{const n=blogAdoptable().length;return n?`<button class="btn btn-ghost" data-pe="adopt">${ico("news","i")}Bring in all site posts (${n})</button>`:""})()}<button class="btn btn-accent" data-pe="new">${ico("plus")}New post</button></div></div>
   ${MYPOSTS.length?`<div class="panel" style="margin:0"><div class="tbl-wrap"><table><thead><tr><th>Post</th><th>Category</th><th>Status</th><th>Media</th><th>Updated</th><th></th></tr></thead><tbody>
     ${MYPOSTS.map(p=>`<tr><td><div class="ap-item"><span class="ap-th">${artFor(p,"d"+p.id)}</span><b>${esc(p.title||"Untitled")}</b></div></td><td>${esc(p.bc)}</td><td>${(()=>{if(p.status!=="Published")return `<span class="pill mute">Draft</span>`;const st=modState("posts",Object.assign({owner:meId()},p)),m=MOD.posts[modKey(meId(),p.id)];return st==="approved"?`<span class="pill good">Published</span>`:st==="rejected"?`<span class="pill bad" title="${esc((m&&m.r)||"")}">Not approved</span>${m&&m.r?`<small class="meta" style="display:block">${esc(m.r)}</small>`:""}`:`<span class="pill warn">Waiting for approval</span>`})()}</td><td class="meta">${(p.media||[]).filter(m=>m.type==="image").length} photos \u00B7 ${(p.media||[]).filter(m=>m.type==="video").length} videos</td><td class="meta">${agoTxt(p.ts)}</td>
-      <td><div class="acts">${p.status==="Published"&&modState("posts",Object.assign({owner:meId()},p))==="approved"?`<a class="btn btn-ghost btn-sm" href="#news--${p.id}">View</a>`:""}<button class="btn btn-ghost btn-sm" data-pe="edit" data-pid="${p.id}">Edit</button><button class="btn btn-ghost btn-sm" data-pe="del" data-pid="${p.id}" aria-label="Delete">${ico("x","i","width:15px;height:15px")}</button></div></td></tr>`).join("")}
+      <td><div class="acts">${p.status==="Published"&&modState("posts",Object.assign({owner:meId()},p))==="approved"?`<a class="btn btn-ghost btn-sm" href="#news--${p.id}">View</a>`:""}<button class="btn btn-ghost btn-sm" data-pe="edit" data-pid="${p.id}">Edit</button>${ADS.admin&&p.bc==="Featured Business"?`<button class="btn btn-ghost btn-sm" data-pe="give" data-pid="${p.id}" title="Give this website to the business owner's account">Give to owner</button>`:""}<button class="btn btn-ghost btn-sm" data-pe="del" data-pid="${p.id}" aria-label="Delete">${ico("x","i","width:15px;height:15px")}</button></div></td></tr>`).join("")}
   </tbody></table></div></div>`:`<div class="empty">${ico("news","i","width:28px;height:28px")}<p><b>You haven't written any posts yet.</b><br>Write about a great find, a local event, or tips for buyers and sellers.</p><button class="btn btn-accent" data-pe="new">${ico("plus")}Write your first post</button></div>`}`;
 }
-function postEditor(){const p=PE,imgs=(p.media||[]);
-  return `<div class="dash-head"><div><div class="crumbs" style="color:var(--muted)"><a href="#" data-pe="cancel" style="color:var(--muted)">My blog posts</a> / ${p.isNew?"New post":"Edit post"}</div><h2>${p.isNew?"New blog post":"Edit blog post"}</h2></div>
+function postEditor(){const p=PE,imgs=(p.media||[]),FB=p.bc==="Featured Business";if(FB)fbpEnsure();const ent=fbpEntitled();
+  return `<div class="dash-head"><div><div class="crumbs" style="color:var(--muted)"><a href="#" data-pe="cancel" style="color:var(--muted)">My blog posts</a> / ${p.isNew?"New post":"Edit post"}</div><h2>${FB?(p.isNew?"New business website":"Edit business website"):p.isNew?"New blog post":"Edit blog post"}</h2></div>
     <div class="acts"><button class="btn btn-ghost" data-pe="cancel">Cancel</button><button class="btn btn-ghost" data-pe="save" data-st="Draft">Save draft</button><button class="btn btn-accent" data-pe="save" data-st="Published">${p.status==="Published"?"Update post":"Publish"}</button></div></div>
   <div class="pe-grid"><div class="pe-main">
     <section class="panel" style="margin:0"><div class="fld"><label for="peT">Title</label><input id="peT" data-pf="title" value="${esc(p.title)}" maxlength="120" placeholder="Give your post a clear title"></div>
-      <div class="two" style="margin-top:12px"><div class="fld"><label for="peC">Category</label><select id="peC" data-pf="bc">${BLOG_CATEGORIES.map(c=>`<option ${p.bc===c?"selected":""}>${c}</option>`).join("")}</select></div><div class="fld"><label for="peX">Short summary</label><input id="peX" data-pf="ex" value="${esc(p.ex)}" maxlength="200" placeholder="One or two sentences for the post card"></div></div>
-      <div class="fld" style="margin-top:12px"><label for="peB">Post</label><textarea id="peB" data-pf="text" rows="14" placeholder="Write your post here. Leave a blank line between paragraphs. Start a line with ## to make a heading.">${esc(p.text)}</textarea><span class="meta">${(p.text||"").trim().split(/\s+/).filter(Boolean).length} words \u00B7 about ${Math.max(1,Math.round((p.text||"").split(/\s+/).length/220))} min read</span></div></section>
+      <div class="two" style="margin-top:12px"><div class="fld"><label for="peC">Category</label><select id="peC" data-pf="bc">${BLOG_CATEGORIES.map(c=>`<option ${p.bc===c?"selected":""}>${c==="Featured Business"?"Featured Business":c}</option>`).join("")}</select>${FB?"":`<span class="meta">Pick <b>Featured Business</b> to build a business website with Home, About, Store and Contact pages.</span>`}</div><div class="fld"><label for="peX">Short summary</label><input id="peX" data-pf="ex" value="${esc(p.ex)}" maxlength="200" placeholder="One or two sentences for the post card"></div></div>
+      ${FB?"":`<div class="fld" style="margin-top:12px"><label for="peB">Post</label><textarea id="peB" data-pf="text" rows="14" placeholder="Write your post here. Leave a blank line between paragraphs. Start a line with ## to make a heading.">${esc(p.text)}</textarea><span class="meta">${(p.text||"").trim().split(/\s+/).filter(Boolean).length} words \u00B7 about ${Math.max(1,Math.round((p.text||"").split(/\s+/).length/220))} min read</span></div>`}</section>
+    ${FB?(ent?"":fbpUpsellHTML())+fbpEditorHTML(p):`
     <section class="panel" style="margin:0"><div class="sec-head" style="margin-bottom:10px"><div><h3 style="margin:0">Photos &amp; videos</h3><p class="meta" style="margin:4px 0 0">Add as many as you like. They show as a gallery under your post. Up to 20 MB each.</p></div></div>
       <label class="drop" id="peDrop" for="peMedia">${ico("upload","i","width:28px;height:28px")}<b>Drop photos and videos here or tap to choose</b><span class="meta">JPG, PNG, GIF, WebP, MP4, MOV or WebM</span><input id="peMedia" type="file" accept="image/*,video/*" multiple></label>
       <p class="meta" id="peUp" hidden></p>
@@ -6688,19 +7014,27 @@ function postEditor(){const p=PE,imgs=(p.media||[]);
         <div class="pe-mact">${m.type==="image"?`<button class="btn btn-ghost btn-sm" data-pe="cover" data-i="${i}">${p.coverIdx===i?"\u2605 Cover":"Set cover"}</button>`:""}<button class="ibtn" data-pe="mleft" data-i="${i}" aria-label="Move earlier">${ico("down","i","width:14px;height:14px;transform:rotate(90deg)")}</button><button class="ibtn" data-pe="mright" data-i="${i}" aria-label="Move later">${ico("down","i","width:14px;height:14px;transform:rotate(-90deg)")}</button><button class="ibtn" data-pe="mdel" data-i="${i}" aria-label="Remove">${ico("x","i","width:14px;height:14px")}</button></div>
         ${m.temp?`<span class="pe-temp">Preview only</span>`:""}</div>`).join("")}</div>`:""}
       ${imgs.some(m=>m.temp)?`<p class="meta" style="margin:10px 0 0">Videos marked "Preview only" can't be saved in preview mode. Open the published site while signed in to upload videos for good.</p>`:""}
-    </section></div>
+    </section>`}</div>
     <aside class="panel pe-prev" style="margin:0"><div class="eyebrow">Card preview</div>
-      <article class="bpost" style="cursor:default"><div class="bpost-img">${p.coverIdx!=null&&imgs[p.coverIdx]?`<img src="${esc(imgs[p.coverIdx].url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:blogArt(p.bc,"pv")}<span class="bcat">${esc(p.bc)}</span></div><div class="bpost-body"><h3>${esc(p.title||"Your title")}</h3><p>${esc(p.ex||"Your summary appears here.")}</p><div class="bfoot"><span>By ${esc((MYPROF||PROF_DEFAULT).name)}</span></div></div></article>
+      <article class="bpost" style="cursor:default"><div class="bpost-img">${FB&&p.cover?`<img src="${esc(p.cover)}" alt="" style="width:100%;height:100%;object-fit:cover">`:p.coverIdx!=null&&imgs[p.coverIdx]?`<img src="${esc(imgs[p.coverIdx].url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:blogArt(p.bc,"pv")}<span class="bcat">${esc(p.bc)}</span></div><div class="bpost-body"><h3>${esc(p.title||"Your title")}</h3><p>${esc(p.ex||"Your summary appears here.")}</p><div class="bfoot"><span>By ${esc((MYPROF||PROF_DEFAULT).name)}</span></div></div></article>
       <p id="peErr" class="meta" style="color:var(--bad);margin:10px 0 0" hidden></p></aside></div>`;
 }
 function peRender(){if(dtab==="posts"&&(location.hash||"")==="#dashboard"){const y=scrollY;app.innerHTML=vDash();scrollTo(0,y)}}
 async function peSave(status){
   const p=PE,err=$("#peErr");const fail=m=>{err.textContent=m;err.hidden=false};
   if(!p.title.trim())return fail("Add a title before saving.");
-  if(status==="Published"&&!(p.text||"").trim())return fail("Write something in your post before publishing.");
+  const FB=p.bc==="Featured Business";
+  if(FB){p.blocks=cleanBlocks(p.blocks);p.about=cleanBlocks(p.about);p.store=cleanStore(p.store).filter(x=>x.name||x.img||x.desc);p.biz=cleanBizInfo(p.biz);p.text=p.blocks.concat(p.about).filter(b=>b.t==="text").map(b=>(b.h?"## "+b.h+"\n":"")+b.x).join("\n\n");
+    const has=b=>(b.t==="text"&&(b.h||b.x.trim()))||(b.t==="photo"&&b.url)||(b.t==="gallery"&&b.imgs.length)||(b.t==="video"&&(b.yt||b.url))||(b.t==="quote"&&b.x);
+    if(status==="Published"&&!p.blocks.concat(p.about).some(has)&&!p.store.length)return fail("Add at least one section with some text or a photo before publishing.");
+    if(status==="Published"&&!p._owner&&!fbpEntitled())return fail("Publishing a business website needs the $"+FBP_PRICE+"/month plan. Save it as a draft now and publish once your plan is paid.")}
+  else if(status==="Published"&&!(p.text||"").trim())return fail("Write something in your post before publishing.");
   const words=(p.text||"").split(/\s+/).filter(Boolean).length,now=Date.now();
   const cover=p.coverIdx!=null&&p.media[p.coverIdx]?p.media[p.coverIdx]:null;
-  const out={id:p.id,title:p.title.trim(),bc:p.bc,ex:(p.ex||"").trim()||(p.text||"").trim().slice(0,160),text:p.text,body:textToBody(p.text),media:p.media,cover:cover?cover.url:"",coverTemp:!!(cover&&cover.temp),coverIdx:p.coverIdx,status,author:(MYPROF||PROF_DEFAULT).name,cat:"classifieds",m:Math.max(1,Math.round(words/220)),ts:p.isNew?now:(p.ts||now),d:new Date(p.isNew?now:(p.ts||now)).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),updated:now};
+  const out={id:p.id,title:p.title.trim(),bc:p.bc,ex:(p.ex||"").trim()||(p.text||"").replace(/^##.*$/gm,"").trim().slice(0,160),text:p.text,body:textToBody(p.text),media:FB?[]:p.media,cover:FB?(p.cover||""):cover?cover.url:"",coverTemp:!FB&&!!(cover&&cover.temp),coverIdx:FB?null:p.coverIdx,status,author:p._owner?(p.author||"Member"):(MYPROF||PROF_DEFAULT).name,...(FB?{blocks:p.blocks,about:p.about,store:p.store,biz:p.biz}:{}),cat:"classifieds",m:Math.max(1,Math.round(words/220)),ts:p.isNew?now:(p.ts||now),d:new Date(p.isNew?now:(p.ts||now)).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),updated:now};
+  if(p._owner&&ADS.admin){/* admin editing a business owner's website: save it back to their account */
+    try{out.owner=p._owner;if(ADS.mode==="live"){const ref=ADS.db.doc("userposts/"+p._owner),d=await ref.get(),cur=d.exists?d.data():{};const L=(Array.isArray(cur.posts)?cur.posts:[]).map(x=>x&&x.id===out.id?out:x);if(!L.some(x=>x&&x.id===out.id))L.unshift(out);await ref.set(Object.assign({},cur,{posts:L}))}
+      if(status==="Published")await modSet("posts",[out],"approved");PE=null;toast("Saved to the owner's website");peRender()}catch(e){fail("That didn't save. "+((e&&e.message)||""))}return}
   const i=MYPOSTS.findIndex(x=>x.id===p.id);if(i>=0)MYPOSTS[i]=out;else MYPOSTS.unshift(out);
   try{await saveMyPosts();PE=null;if(status==="Published"&&ADS.admin)await modSet("posts",[Object.assign({owner:meId()},out)],"approved");toast(status!=="Published"?"Draft saved":(ADS.admin||!MOD.cfg.posts)?"Post published to News":"Post sent for approval. It appears on News once an admin approves it.");peRender()}catch(e){fail("That didn't save. "+((e&&e.message)||""))}
 }
@@ -6965,7 +7299,7 @@ const safeHttps=u=>/^https:\/\/[^\s"'<>]+$/i.test(u||"")?u:"";
 const safeColor=c=>/^#[0-9a-f]{3,8}$/i.test(c||"")?c:"#3c434c";
 const numIn=(v,a,b,d)=>{v=Number(v);return Number.isFinite(v)?Math.min(b,Math.max(a,v)):d};
 const cleanMedia=m=>(Array.isArray(m)?m:[]).slice(0,40).map(x=>({url:safeUrl(x&&x.url),type:x&&x.type==="video"?"video":"image",caption:noTags(x&&x.caption).slice(0,200),temp:!!(x&&x.temp)})).filter(x=>x.url);
-function cleanPost(p){p=p||{};return {id:cleanId(p.id),title:noTags(p.title).slice(0,140),ex:noTags(p.ex).slice(0,320),bc:BLOG_CATEGORIES.includes(p.bc)?p.bc:"Buying & Selling",author:noTags(p.author).slice(0,60),text:typeof p.text==="string"?p.text.slice(0,20000):"",body:textToBody(typeof p.text==="string"?p.text.slice(0,20000):""),media:cleanMedia(p.media),cover:safeUrl(p.cover),coverIdx:Number.isInteger(p.coverIdx)?p.coverIdx:null,status:p.status==="Published"?"Published":"Draft",cat:"classifieds",m:numIn(p.m,1,60,1),ts:numIn(p.ts,0,9e15,Date.now()),d:noTags(p.d).slice(0,30),owner:cleanId(p.owner)}}
+function cleanPost(p){p=p||{};return {id:cleanId(p.id),title:noTags(p.title).slice(0,140),ex:noTags(p.ex).slice(0,320),bc:BLOG_CATEGORIES.includes(p.bc)?p.bc:"Buying & Selling",author:noTags(p.author).slice(0,60),text:typeof p.text==="string"?p.text.slice(0,20000):"",body:textToBody(typeof p.text==="string"?p.text.slice(0,20000):""),media:cleanMedia(p.media),cover:safeUrl(p.cover),coverIdx:Number.isInteger(p.coverIdx)?p.coverIdx:null,status:p.status==="Published"?"Published":"Draft",cat:"classifieds",m:numIn(p.m,1,60,1),ts:numIn(p.ts,0,9e15,Date.now()),d:noTags(p.d).slice(0,30),owner:cleanId(p.owner),blocks:cleanBlocks(p.blocks),about:cleanBlocks(p.about),store:cleanStore(p.store),biz:cleanBizInfo(p.biz)}}
 function cleanPlace(p){p=p||{};return {slug:String(p.slug||"").toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,60),n:noTags(p.n).slice(0,80),cat:RV_CATS.some(c=>c[0]===p.cat)?p.cat:"Other",town:noTags(p.town).slice(0,40),addr:noTags(p.addr).slice(0,140),d:noTags(p.d).slice(0,200),c:safeColor(p.c),owner:cleanId(p.owner)}}
 function cleanReview(r){r=r||{};const asp={};RV_ASPECTS.forEach(([k])=>{const v=numIn(r.asp&&r.asp[k],0,5,0);if(v)asp[k]=Math.round(v)});const tp=rvTypeById(r.type),qa={};if(tp&&r.qa&&typeof r.qa==="object")tp.q.forEach(([k,,o])=>{const v=r.qa[k];if(typeof v==="string"&&o.includes(v))qa[k]=v});
   return {id:cleanId(r.id),place:String(r.place||"").toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,60),author:noTags(r.author).slice(0,60)||"Member",rating:Math.round(numIn(r.rating,1,5,1)),asp,title:noTags(r.title).slice(0,100),text:noTags(r.text).slice(0,2000),visit:noTags(r.visit).slice(0,10),recommend:!!r.recommend,media:cleanMedia(r.media),ts:numIn(r.ts,0,9e15,Date.now()),updated:numIn(r.updated,0,9e15,0),owner:cleanId(r.owner),hidden:!!r.hidden,staff:!!r.staff,type:tp?tp.id:"",qa}}
@@ -7139,10 +7473,13 @@ document.addEventListener("click",e=>{
     if(PEB.hasAttribute("data-prof-pintown")){const t=TOWN_LL[PF.city]||TOWN_LL.Ogden;PF.lat=t[0];PF.lng=t[1];profRender();return}
     e.preventDefault();
     if(d.pe==="new"){PE={id:"p"+Date.now().toString(36),isNew:true,title:"",bc:BLOG_CATEGORIES[0],ex:"",text:"",media:[],coverIdx:null,status:"Draft"};peRender();return}
-    if(d.pe==="edit"){const p=MYPOSTS.find(x=>x.id===d.pid);PE=Object.assign(JSON.parse(JSON.stringify(p)),{isNew:false,text:p.text||bodyToText(p.body)});peRender();return}
+    if(d.pe==="edit"){const p=MYPOSTS.find(x=>x.id===d.pid);PE=Object.assign(JSON.parse(JSON.stringify(p)),{isNew:false,text:p.text||bodyToText(p.body)});if(PE.bc==="Featured Business")fbpEnsure();peRender();return}
+    if(d.pe==="give"){fbpGiveModal(d.pid);return}
     if(d.pe==="del"){const p=MYPOSTS.find(x=>x.id===d.pid);openModal(`<div class="form"><h2>Delete this post?</h2><p style="margin:0;color:var(--muted)">\u201C${esc(p.title)}\u201D will be removed from the News page.</p><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" data-close>Keep it</button><button class="btn btn-danger" data-pe="delyes" data-pid="${p.id}">Delete post</button></div></div>`,true);return}
     if(d.pe==="delyes"){MYPOSTS=MYPOSTS.filter(x=>x.id!==d.pid);saveMyPosts().then(()=>{closeModal();toast("Post deleted");peRender()});return}
     if(d.pe==="cancel"){PE=null;peRender();return}
+    if(d.pe==="adopt"){const n=blogAdoptable().length;openModal(`<div class="form"><h2>Bring ${n} posts into My blog posts?</h2><p style="margin:0;color:var(--muted)">Every blog post on the site (the built-in articles, the ones imported from your old website and newsroom posts) becomes yours to edit here. They keep their dates and web addresses, and show your name as the author. Photos from the imported posts move into each post's photo gallery, and links become plain clickable links. Bold text and photo placement inside the text aren't kept.</p><p class="meta" id="adoptMsg" style="margin:0"></p><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" data-close>Not now</button><button class="btn btn-accent" data-pe="adoptyes">Bring them in</button></div></div>`,true);return}
+    if(d.pe==="adoptyes"){const b=e.target.closest("button"),m=$("#adoptMsg");b.disabled=true;if(m)m.textContent="Moving posts\u2026";blogAdopt().then(n=>{closeModal();toast(n+" posts are now in My blog posts");peRender()},x=>{b.disabled=false;if(m){m.style.color="var(--bad)";m.textContent="That didn't finish. "+((x&&x.message)||"Try again.")}});return}
     if(d.pe==="save"){peSave(d.st);return}
     const i=+d.i;
     if(d.pe==="cover"){PE.coverIdx=PE.coverIdx===i?null:i;peRender();return}
@@ -7284,7 +7621,7 @@ document.addEventListener("change",e=>{const el=e.target;
   if(el.id==="rvTown"){rvTown=el.value;rvRefresh();return}if(el.id==="rvSort"){rvSort=el.value;rvRefresh();return}
   if(el.dataset.rvsort){rvSel[el.dataset.rvsort].sort=el.value;rvRefresh();return}
   if(el.id==="rvMedia"&&el.files.length){rvSyncFields();const files=[...el.files];const m=$("#rvUp");m.hidden=false;m.textContent="Uploading "+files.length+" file"+(files.length>1?"s":"")+"\u2026";(async()=>{const errs=[];for(const f of files){try{RVF.media.push(await mediaUpload(f))}catch(x){errs.push((x&&x.message)||"Upload failed")}}rvForm(placeBySlug(RVF.place));if(errs.length)toast(errs[0])})();return}if(el.id==="zSam"){ZSAM=el.checked;if(ZSAM)zMoved();else{const y=scrollY;app.innerHTML=vCat("homes");renderSlots();scrollTo(0,y)}return}
-  if(PE&&el.dataset.pf){PE[el.dataset.pf]=el.value;if(el.dataset.pf!=="text"&&el.dataset.pf!=="title")peRender();return}
+  if(PE&&el.dataset.pf){PE[el.dataset.pf]=el.value;if(el.dataset.pf==="bc"&&el.value==="Featured Business")fbpEnsure();if(el.dataset.pf!=="text"&&el.dataset.pf!=="title"&&el.dataset.pf!=="ex")peRender();return}
   if(PF&&el.dataset.prof){PF[el.dataset.prof]=el.value;if(el.dataset.prof==="city"){const t=TOWN_LL[el.value];if(t){PF.lat=t[0];PF.lng=t[1]}}profRender();return}
   if(PF&&el.dataset.profChk){PF[el.dataset.profChk]=el.checked;profRender();return}
   if(el.id==="pfPhoto"&&el.files[0]){mediaUpload(el.files[0]).then(r=>{if(r.type!=="image")throw {message:"Choose an image file."};PF.photo=r.url;profRender()}).catch(x=>toast((x&&x.message)||"Upload failed"));return}
@@ -7622,8 +7959,8 @@ function vRules(){const S=[["Be honest","Describe items accurately, including fl
   <div class="acts" style="justify-content:flex-start;margin-top:14px;flex-wrap:wrap"><a class="btn btn-ghost" href="#news--safe-trading">Safe trading tips</a><a class="btn btn-accent" href="#home">Back to the marketplace</a></div></div></div>`}
 
 /* ================= PAID UPGRADES: bump, featured ads and plans, paid by card ================= */
-const UPG={bump:{name:"Bump to the top",amount:5},feature:{name:"Featured Ad \u00B7 7 days",amount:5},power:{name:"Power Seller \u00B7 1 month",amount:65,monthly:true},power3:{name:"Power Seller \u00B7 3 months",amount:175,months:3},bizpage:{name:"Business Page",amount:5,monthly:true},spotlight:{name:"Business Spotlight",amount:79,monthly:true}};
-const PLAN_KIND={"Featured Ad":"feature","Power Seller":"power","Power Seller 3 months":"power3","Business Page":"bizpage","Business Spotlight":"spotlight"};
+const UPG={bump:{name:"Bump to the top",amount:5},feature:{name:"Featured Ad \u00B7 7 days",amount:5},power:{name:"Power Seller \u00B7 1 month",amount:65,monthly:true},power3:{name:"Power Seller \u00B7 3 months",amount:175,months:3},bizsite:{name:"Business website \u00B7 1 month",amount:20,addon:true},bizpage:{name:"Business Page (retired)",amount:5,monthly:true},spotlight:{name:"Business Spotlight",amount:79,monthly:true}};
+const PLAN_KIND={"Featured Business page":"bizsite","Featured Ad":"feature","Power Seller":"power","Power Seller 3 months":"power3","Business website":"bizsite","Business Spotlight":"spotlight"};
 const UPG_ST=["Awaiting payment","Payment submitted","Paid","Cancelled"];
 let MYUPG=[];ADS.upgrades=[];let upgFilter="Open";
 const upgLocal={get:()=>store.get("upgrades",[]),set:v=>store.set("upgrades",v)};
@@ -7653,7 +7990,7 @@ function upgLink(u){if(!PAY.email||!u.amount)return "";const mon=u.items.length=
 async function upgPay(items){if(ADS.mode==="live"&&!ADS.uid){toast("Sign in to buy upgrades.");return}
   const me=MYPROF||{},now=Date.now();const rec={id:"UP"+now.toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(),items,status:"Awaiting payment",at:now,email:me.email||"",name:me.name||""};
   try{await upgWrite(ADS.mode==="live"?ADS.uid:"me",L=>[rec,...L]);const u=cleanUpg(rec,meId());if(ADS.mode==="live")MYUPG=[u,...MYUPG];if((location.hash||"")==="#dashboard"&&typeof vDash==="function"){const y=scrollY;closeModal();app.innerHTML=vDash();scrollTo(0,y)}upgModal(u)}catch(x){toast("Couldn't start checkout. "+((x&&x.message)||""))}}
-function upgModal(u){const link=upgLink(u),mon=u.items.length===1&&UPG[u.items[0].kind].monthly,plan=u.items.length===1&&(mon||UPG[u.items[0].kind].months);
+function upgModal(u){const link=upgLink(u),mon=u.items.length===1&&UPG[u.items[0].kind].monthly,plan=u.items.length===1&&(mon||UPG[u.items[0].kind].months||UPG[u.items[0].kind].addon);
   openModal(`<div class="form"><div class="eyebrow">Checkout</div><h2>${plan?"Start "+esc(UPG[u.items[0].kind].name):"Pay for your upgrade"}</h2>
     <div class="summary" style="position:static">${u.items.map(i=>`<div class="row"><span>${esc(UPG[i.kind].name)}${i.title?`<small class="meta" style="display:block">${esc(i.title)}</small>`:""}</span><b class="mono">${money(UPG[i.kind].amount)}${UPG[i.kind].monthly?"/mo":""}</b></div>`).join("")}<div class="row" style="font-size:17px"><span>Total due today</span><b class="mono">${money(u.amount)}</b></div></div>
     ${link?`<a class="btn btn-accent co-go" href="${esc(link)}" target="_blank" rel="noopener" data-upgpay="${esc(u.id)}">${ico("lock","i","width:16px;height:16px")}Pay ${money(u.amount)} by card${mon?" \u00B7 renews monthly":""}</a>${cardMarks}
