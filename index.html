@@ -3077,7 +3077,10 @@ b,strong,th,dt{font-weight:500}
 .home-ytbg{overflow:hidden;pointer-events:none;container-type:size;background:transparent}
 .home-ytbg iframe{position:absolute;top:50%;left:50%;width:max(100cqw,177.78cqh);height:max(56.25cqw,100cqh);transform:translate(-50%,-50%) scale(1.18);border:0;opacity:0;animation:ytIn .8s ease 2.2s forwards}
 @keyframes ytIn{to{opacity:1}}
+.home-ytbg.done iframe{animation:none;opacity:0;transition:opacity 1s}
 @media (prefers-reduced-motion:reduce){.home-vid{display:none}}
+.yt-opts{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-top:8px}.yt-opts .fld{margin:0}.yt-loop{padding-bottom:10px;white-space:nowrap}
+@media (max-width:520px){.yt-opts{grid-template-columns:1fr 1fr}.yt-loop{grid-column:1/-1;padding:0}}
 .hero-vsec{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}.hero-vprev{width:100%;aspect-ratio:12/5;object-fit:cover;border-radius:10px;background:#000}
 
 .home-hero{width:calc(100% - 2*max(16px,env(safe-area-inset-left,0px)));max-width:1208px;margin:0 auto;border-radius:0}
@@ -4098,7 +4101,10 @@ function heroEditModal(k){const h=[...$$(".page-head,.home-hero,.blog-hero,.sc-h
       <label class="drop" for="heroVid">${ico("play","i","width:22px;height:22px")}<b>${vidUrl(SITEIMG.homevid)?"Replace video":"Upload a video"}</b><span class="meta">MP4 or WebM \u00B7 up to 20 MB \u00B7 plays silently on a loop. Short 10\u201320 second clips work best.</span><input id="heroVid" type="file" accept="video/mp4,video/webm"></label>
       ${vidUrl(SITEIMG.homevid)?`<button type="button" class="btn btn-ghost btn-sm" data-herovidrm>Remove video</button>`:""}<p class="meta" style="margin:6px 0 0">The video plays behind the hero. The image above shows while it loads and for visitors who turn off motion.</p>
       <div class="fld" style="margin-top:12px"><label for="heroYtBg">Or play a YouTube video in the background</label><input id="heroYtBg" type="url" maxlength="300" placeholder="Paste a YouTube link, e.g. https://youtu.be/\u2026" value="${SITEIMG.homeytbg?"https://youtu.be/"+esc(SITEIMG.homeytbg):""}"></div>
-      <p class="meta" id="heroYtBgMsg" style="margin:0">Plays muted on a loop with no buttons, cropped to fill the hero. A YouTube video takes the place of an uploaded one.</p>
+      <div class="yt-opts"><div class="fld"><label for="heroYtS">Start at</label><input id="heroYtS" inputmode="numeric" maxlength="9" placeholder="0:00" value="${SITEIMG.homeytbgs?ytClock(SITEIMG.homeytbgs):""}"></div>
+      <div class="fld"><label for="heroYtE">Stop at</label><input id="heroYtE" inputmode="numeric" maxlength="9" placeholder="optional" value="${SITEIMG.homeytbge?ytClock(SITEIMG.homeytbge):""}"></div>
+      <label class="fchk yt-loop"><input type="checkbox" id="heroYtLoop" ${SITEIMG.homeytbgnl?"":"checked"}><span>Loop</span></label></div>
+      <p class="meta" id="heroYtBgMsg" style="margin:0">Plays muted with no buttons, cropped to fill the hero. Times look like 1:05. With Loop on it jumps back to your start time; with Loop off it plays once, then fades back to the photo. A YouTube video takes the place of an uploaded one.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-accent btn-sm" data-heroytbgsave>Save YouTube background</button>${SITEIMG.homeytbg?`<button type="button" class="btn btn-ghost btn-sm" data-heroytbgrm>Remove YouTube background</button>`:""}</div></div>
     <div class="hero-vsec"><div class="eyebrow" style="margin-bottom:6px">YouTube video button</div><p class="meta" style="margin:0 0 8px">Adds a \u201CWatch\u201D button to the hero that plays your YouTube video in a player window.</p>
       <div class="fld"><label for="heroYt">YouTube link</label><input id="heroYt" type="url" maxlength="300" placeholder="https://youtu.be/\u2026" value="${SITEIMG.homeyt?"https://youtu.be/"+esc(SITEIMG.homeyt):""}"></div>
@@ -4110,7 +4116,7 @@ function heroEditModal(k){const h=[...$$(".page-head,.home-hero,.blog-hero,.sc-h
 
 /* re-compress header images that were uploaded before auto-optimizing existed */
 async function heroOptimizeAll(){if(!ADS.admin)return;const msg=$("#heroOptMsg"),say=t=>{if(msg)msg.textContent=t};
-  const keys=Object.keys(SITEIMG).filter(k=>!["homevid","homeyt","homeytl","homeytbg"].includes(k)&&typeof SITEIMG[k]==="string"&&medUrl(SITEIMG[k]));
+  const keys=Object.keys(SITEIMG).filter(k=>!["homevid","homeyt","homeytl","homeytbg","homeytbgs","homeytbge","homeytbgnl"].includes(k)&&typeof SITEIMG[k]==="string"&&medUrl(SITEIMG[k]));
   if(!keys.length){say("No uploaded header images to optimize.");return}let done=0,saved=0;
   for(const k of keys){say(`Optimizing ${done+1} of ${keys.length}\u2026`);try{const r=await fetch(SITEIMG[k]);if(!r.ok)throw 0;const bl=await r.blob();if(!/^image\/(jpeg|png|webp)$/.test(bl.type)){done++;continue}
       const f=new File([bl],"header-"+k+"."+(bl.type.split("/")[1]||"jpg"),{type:bl.type}),o=await fitImg(f);
@@ -4129,7 +4135,14 @@ document.addEventListener("click",async e=>{const sv=e.target.closest("[data-her
   else{delete SITEIMG.homeyt;delete SITEIMG.homeytl}
   try{await siteSave();closeModal();toast(sv?"YouTube button saved":"YouTube button removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
 document.addEventListener("click",async e=>{const sv=e.target.closest("[data-heroytbgsave]"),rm=e.target.closest("[data-heroytbgrm]");if((!sv&&!rm)||!ADS.admin)return;const m=$("#heroYtBgMsg");
-  if(sv){const id=ytId(($("#heroYtBg").value||"").trim());if(!id){if(m){m.style.color="var(--bad)";m.textContent="That doesn't look like a YouTube video link. Copy it from the Share button on YouTube."}return}SITEIMG.homeytbg=id}else delete SITEIMG.homeytbg;
+  const bad=t=>{if(m){m.style.color="var(--bad)";m.textContent=t}};
+  if(sv){const raw=($("#heroYtBg").value||"").trim(),id=ytId(raw);if(!id)return bad("That doesn't look like a YouTube video link. Copy it from the Share button on YouTube.");
+    let st=ytSecs($("#heroYtS").value),en=ytSecs($("#heroYtE").value);
+    if(st===0&&!$("#heroYtS").value.trim()){try{const t=new URL(raw).searchParams.get("t")||new URL(raw).searchParams.get("start");if(t&&ytSecs(t)>0)st=ytSecs(t)}catch(x){}}
+    if(st<0)return bad("Start time should look like 1:05 (minutes:seconds).");if(en<0)return bad("Stop time should look like 2:30 (minutes:seconds).");
+    if(en&&en<=st)return bad("The stop time has to be after the start time.");
+    SITEIMG.homeytbg=id;if(st)SITEIMG.homeytbgs=st;else delete SITEIMG.homeytbgs;if(en)SITEIMG.homeytbge=en;else delete SITEIMG.homeytbge;if($("#heroYtLoop").checked)delete SITEIMG.homeytbgnl;else SITEIMG.homeytbgnl=1}
+  else{delete SITEIMG.homeytbg;delete SITEIMG.homeytbgs;delete SITEIMG.homeytbge;delete SITEIMG.homeytbgnl}
   try{await siteSave();closeModal();toast(sv?"YouTube background saved":"YouTube background removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
 document.addEventListener("click",async e=>{if(!e.target.closest("[data-herovidrm]")||!ADS.admin)return;delete SITEIMG.homevid;try{await siteSave();closeModal();toast("Video removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
 document.addEventListener("change",async e=>{if(e.target.id!=="heroFile"||!ADS.admin)return;const k=e.target.dataset.herok,f=e.target.files[0];if(!f)return;const m=$("#heroMsg");if(m){m.hidden=false;m.style.color="";m.textContent="Uploading\u2026"}
@@ -4154,7 +4167,7 @@ function vHome(){
   const posts=POSTS.slice(0,8);
   const qcats=[["all","All Categories"],["classifieds","Classifieds"],["auctions","Auctions"],["powersports","Powersports"],["autos","Autos"],["rv","RV / Travel"],["horses","Equine"],["homes","Real Estate"]];
   const ytbg=/^[A-Za-z0-9_-]{11}$/.test(SITEIMG.homeytbg||"")?SITEIMG.homeytbg:"";
-  return `<div class="home-hero-bg"><section class="home-hero ${ytbg||vidUrl(SITEIMG.homevid)?"has-vid":""}">${ytbg?`<div class="home-vid home-ytbg" aria-hidden="true"><iframe src="https://www.youtube-nocookie.com/embed/${ytbg}?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=${ytbg}&amp;controls=0&amp;playsinline=1&amp;modestbranding=1&amp;rel=0&amp;disablekb=1&amp;iv_load_policy=3&amp;fs=0" title="Background video" allow="autoplay; encrypted-media" tabindex="-1" frameborder="0" loading="eager"></iframe></div>`:vidUrl(SITEIMG.homevid)?`<video class="home-vid" src="${esc(vidUrl(SITEIMG.homevid))}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>`:""}<div class="home-hero-shade"></div><div class="wrap home-hero-in">
+  return `<div class="home-hero-bg"><section class="home-hero ${ytbg||vidUrl(SITEIMG.homevid)?"has-vid":""}">${ytbg?`<div class="home-vid home-ytbg" aria-hidden="true" data-s="${SITEIMG.homeytbgs||0}" data-loop="${SITEIMG.homeytbgnl?0:1}"><iframe src="https://www.youtube-nocookie.com/embed/${ytbg}?autoplay=1&amp;mute=1&amp;enablejsapi=1&amp;origin=${encodeURIComponent(location.origin)}${SITEIMG.homeytbgs?"&amp;start="+SITEIMG.homeytbgs:""}${SITEIMG.homeytbge?"&amp;end="+SITEIMG.homeytbge:""}&amp;controls=0&amp;playsinline=1&amp;modestbranding=1&amp;rel=0&amp;disablekb=1&amp;iv_load_policy=3&amp;fs=0" title="Background video" allow="autoplay; encrypted-media" tabindex="-1" frameborder="0" loading="eager"></iframe></div>`:vidUrl(SITEIMG.homevid)?`<video class="home-vid" src="${esc(vidUrl(SITEIMG.homevid))}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>`:""}<div class="home-hero-shade"></div><div class="wrap home-hero-in">
       <img class="home-coin" src="${(document.querySelector('meta[name=bn-coin]')||{}).content||$(".logo-img").src}" alt="The Big Nickel" width="110" height="110">
       <h1>Adventures Marketplace</h1>
       <p>Marketplace, Classifieds, Auctions, Vehicles, Power Sports, RVs, Equine &amp; Real Estate.</p>
@@ -7371,6 +7384,19 @@ function detPics(l){const P=(Array.isArray(l.photos)?l.photos:[]).filter(medUrl)
 function detGallery(l){const P=DET_P;if(P.length<2)return "";return `<div class="det-strip" role="group" aria-label="Photos">${P.map((u,i)=>`<button type="button" class="det-tn ${i?"":"on"}" data-detph="${i}" aria-label="Show photo ${i+1}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`}
 function detVideos(l){const V=(Array.isArray(l.videos)?l.videos:[]).filter(v=>v&&vidUrl(v.url)).slice(0,PV_MAX),L=safeHttps(l.vlink);if(!V.length&&!L)return "";let host="";try{host=L?new URL(L).hostname.replace(/^www\./,""):""}catch(x){}
   return `<section class="det-vids" aria-label="Videos"><h4>${ico("play","i","width:16px;height:16px")}Videos <span class="meta">${V.length?V.length+" clip"+(V.length>1?"s":""):""}</span></h4>${V.length?`<div class="det-vgrid">${V.map((v,i)=>`<figure><video src="${esc(v.url)}" controls preload="metadata" playsinline aria-label="Video ${i+1}"></video>${v.temp?`<figcaption class="meta">Preview only, not saved</figcaption>`:""}</figure>`).join("")}</div>`:""}${L&&ytId(L)?`<a class="det-yt" href="https://www.youtube.com/watch?v=${ytId(L)}" data-ytplay="${ytId(L)}" target="_blank" rel="noopener nofollow" aria-label="Play YouTube video"><span class="det-yt-btn" aria-hidden="true"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7a8.5 8.5 0 0 0-6-6C55.2.3 34 .3 34 .3s-21.2 0-26.5 1.4a8.5 8.5 0 0 0-6 6C.1 13 .1 24 .1 24s0 11 1.4 16.3a8.5 8.5 0 0 0 6 6C12.8 47.7 34 47.7 34 47.7s21.2 0 26.5-1.4a8.5 8.5 0 0 0 6-6C67.9 35 67.9 24 67.9 24s0-11-1.4-16.3z" fill="#f00"/><path d="M45 24 27 14v20z" fill="#fff"/></svg></span><span class="det-yt-txt"><b>Play YouTube video</b><small>Opens in a player window</small></span></a>`:L?`<a class="btn btn-ghost btn-sm det-vlink" href="${esc(L)}" target="_blank" rel="noopener nofollow">${ico("play","i","width:15px;height:15px")}Watch on ${esc(host||"video site")}</a>`:""}</section>`}
+/* "1:05", "65", "1:02:03" or "1m5s" -> seconds; "" -> 0; bad -> -1 */
+function ytSecs(v){v=String(v||"").trim().toLowerCase();if(!v)return 0;let m=v.match(/^(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s?)?$/);if(m&&(m[1]||m[2]||m[3]))return (+m[1]||0)*3600+(+m[2]||0)*60+(+m[3]||0);
+  m=v.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);if(m)return m[3]!=null?(+m[1])*3600+(+m[2])*60+(+m[3]):(+m[1])*60+(+m[2]);return -1}
+function ytClock(n){n=+n||0;const h=Math.floor(n/3600),m=Math.floor(n%3600/60),x=String(n%60).padStart(2,"0");return h?h+":"+String(m).padStart(2,"0")+":"+x:m+":"+x}
+/* hero YouTube background: loop back to the chosen start time, or fade back to the photo when it's set to play once */
+document.addEventListener("load",e=>{const f=e.target;if(!(f instanceof HTMLIFrameElement)||!f.closest(".home-ytbg"))return;
+  const tell=o=>{try{f.contentWindow.postMessage(JSON.stringify(Object.assign({id:"ytbg",channel:"widget"},o)),"*")}catch(x){}};
+  tell({event:"listening"});tell({event:"command",func:"addEventListener",args:["onStateChange"]})},true);
+window.addEventListener("message",e=>{if(!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin))return;const f=document.querySelector(".home-ytbg iframe");if(!f||e.source!==f.contentWindow)return;
+  let d;try{d=typeof e.data==="string"?JSON.parse(e.data):e.data}catch(x){return}if(!d)return;
+  const st=d.event==="onStateChange"?d.info:(d.event==="infoDelivery"&&d.info&&typeof d.info.playerState==="number"?d.info.playerState:null);if(st!==0)return;
+  const w=f.closest(".home-ytbg"),cmd=(func,args)=>f.contentWindow.postMessage(JSON.stringify({event:"command",func,args,id:"ytbg",channel:"widget"}),"*");
+  if(w.dataset.loop==="1"){cmd("seekTo",[+w.dataset.s||0,true]);cmd("playVideo",[])}else w.classList.add("done")});
 function ytId(u){try{const x=new URL(u),h=x.hostname.replace(/^(www|m|music)\./,"");let id="";if(h==="youtu.be")id=x.pathname.slice(1).split("/")[0];else if(/(^|\.)youtube(-nocookie)?\.com$/.test(h)){id=x.searchParams.get("v")||"";const m=x.pathname.match(/^\/(shorts|embed|live|v)\/([^/?#]+)/);if(m)id=m[2]}return /^[A-Za-z0-9_-]{11}$/.test(id)?id:""}catch(e){return ""}}
 document.addEventListener("click",e=>{const a=e.target.closest("[data-ytplay]");if(!a)return;e.preventDefault();const id=a.dataset.ytplay;if(!/^[A-Za-z0-9_-]{11}$/.test(id))return;const W=Math.min(1100,screen.availWidth-40),H=Math.round(W*9/16)+140,L=Math.max(0,(screen.availWidth-W)/2),T=Math.max(0,(screen.availHeight-H)/2);
   let w=null;try{w=window.open("https://www.youtube.com/watch?v="+id,"bn_yt",`popup=yes,width=${W},height=${H},left=${L},top=${T}`)}catch(x){}if(!w){try{window.open("https://www.youtube.com/watch?v="+id,"_blank","noopener")}catch(x){}}else{try{w.opener=null;w.focus()}catch(x){}}});
@@ -7426,7 +7452,7 @@ const medUrl=u=>{u=String(u||"").trim();return /^(https:\/\/|\/(?!\/)|data:image
 function medClean(d){d=d||{};const items=(Array.isArray(d.items)?d.items:[]).map(x=>({id:cleanId(x.id),url:medUrl(x.url),assetId:noTags(x.assetId||"").slice(0,80),name:noTags(x.name||"image").slice(0,120),folder:noTags(x.folder||"").slice(0,40),w:numIn(x.w,0,1e5,0),h:numIn(x.h,0,1e5,0),size:numIn(x.size,0,1e9,0),type:x.type==="video"?"video":"image",at:numIn(x.at,0,9e15,Date.now()),alt:noTags(x.alt||"").slice(0,200)})).filter(x=>x.id&&x.url);
   return {items,folders:(Array.isArray(d.folders)?d.folders:[]).map(f=>noTags(f).slice(0,40)).filter(Boolean)}}
 const vidUrl=u=>{u=String(u||"").trim();return /^(https:\/\/|\/(?!\/)|blob:)[^"'()\s\\<>]+$/i.test(u)?u:""};
-function siteClean(d){const o={};if(d&&vidUrl(d.homevid))o.homevid=vidUrl(d.homevid);if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeytbg||""))o.homeytbg=d.homeytbg;if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeyt||"")){o.homeyt=d.homeyt;const l=noTags(d.homeytl||"").trim().slice(0,40);if(l)o.homeytl=l}SITE_SLOTS.forEach(([k])=>{const u=medUrl(d&&d[k]);if(u)o[k]=u});Object.keys(d||{}).forEach(k=>{if(/^(social|pg-[a-z0-9-]{1,40})$/.test(k)){const u=medUrl(d[k]);if(u)o[k]=u}});return o}
+function siteClean(d){const o={};if(d&&vidUrl(d.homevid))o.homevid=vidUrl(d.homevid);if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeytbg||"")){o.homeytbg=d.homeytbg;const st=Math.floor(+d.homeytbgs||0),en=Math.floor(+d.homeytbge||0);if(st>0&&st<86400)o.homeytbgs=st;if(en>0&&en<86400&&en>(o.homeytbgs||0))o.homeytbge=en;if(d.homeytbgnl)o.homeytbgnl=1}if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeyt||"")){o.homeyt=d.homeyt;const l=noTags(d.homeytl||"").trim().slice(0,40);if(l)o.homeytl=l}SITE_SLOTS.forEach(([k])=>{const u=medUrl(d&&d[k]);if(u)o[k]=u});Object.keys(d||{}).forEach(k=>{if(/^(social|pg-[a-z0-9-]{1,40})$/.test(k)){const u=medUrl(d[k]);if(u)o[k]=u}});return o}
 function applySiteImgs(){let el=document.getElementById("siteImgCSS");if(!el){el=document.createElement("style");el.id="siteImgCSS";document.head.appendChild(el)}
   const css=[];const shade="linear-gradient(90deg,rgba(10,10,11,.45),rgba(10,10,11,.2) 55%,rgba(10,10,11,.08))";
   Object.entries(SITEIMG).forEach(([k,u])=>{if(!medUrl(u))return;const U='url("'+u+'")';
