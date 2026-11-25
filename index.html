@@ -3073,6 +3073,10 @@ b,strong,th,dt{font-weight:500}
 .home-hero-shade{position:absolute;inset:0;background:rgba(10,10,11,.5)}
 .home-white{background:var(--card)}.weu-av{width:40px;height:40px;background:#b5302a!important;color:#fff!important;display:grid;place-items:center}.weu-badge{display:inline-block;margin-left:6px;font:600 10.5px var(--f-body);text-transform:uppercase;letter-spacing:.08em;background:#b5302a;color:#fff;border-radius:99px;padding:2px 8px;vertical-align:2px}.home-mag,.home-grey{background:var(--paper);border-block:1px solid var(--line)}.home-mag{padding-block:56px}.home-promos-band{padding-block:48px}.home-midband{padding-block:44px}.home-midband .ad-house{background-color:color-mix(in srgb,var(--card) 82%,transparent)}.home-promos-band .home-promos{margin:0}
 .home-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.home-hero.has-vid .home-hero-shade{background:linear-gradient(rgba(10,10,11,.35),rgba(10,10,11,.5))}.home-hero .home-hero-shade{z-index:1}.home-hero .home-hero-in{z-index:2}.home-hero .hero-edit{z-index:6}
+/* YouTube background: cropped to fill the hero like a cover photo, no controls, fades in once it's playing */
+.home-ytbg{overflow:hidden;pointer-events:none;container-type:size;background:transparent}
+.home-ytbg iframe{position:absolute;top:50%;left:50%;width:max(100cqw,177.78cqh);height:max(56.25cqw,100cqh);transform:translate(-50%,-50%) scale(1.18);border:0;opacity:0;animation:ytIn .8s ease 2.2s forwards}
+@keyframes ytIn{to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.home-vid{display:none}}
 .hero-vsec{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}.hero-vprev{width:100%;aspect-ratio:12/5;object-fit:cover;border-radius:10px;background:#000}
 
@@ -4092,7 +4096,10 @@ function heroEditModal(k){const h=[...$$(".page-head,.home-hero,.blog-hero,.sc-h
     ${MED.items.filter(x=>x.type==="image"&&medUrl(x.url)).length?`<div><div class="eyebrow" style="margin-bottom:6px">Or pick from your media library</div><div class="hero-lib">${MED.items.filter(x=>x.type==="image"&&medUrl(x.url)).slice(0,18).map(x=>`<button type="button" class="hero-li ${x.url===cur?"on":""}" data-heropick="${esc(x.url)}" data-herok="${esc(k)}"><img src="${esc(x.url)}" alt="${esc(x.name||"")}" loading="lazy"></button>`).join("")}</div></div>`:""}
     ${k==="home"?`<div class="hero-vsec"><div class="eyebrow" style="margin-bottom:6px">Background video</div>${vidUrl(SITEIMG.homevid)?`<video class="hero-vprev" src="${esc(vidUrl(SITEIMG.homevid))}" muted loop autoplay playsinline></video>`:""}
       <label class="drop" for="heroVid">${ico("play","i","width:22px;height:22px")}<b>${vidUrl(SITEIMG.homevid)?"Replace video":"Upload a video"}</b><span class="meta">MP4 or WebM \u00B7 up to 20 MB \u00B7 plays silently on a loop. Short 10\u201320 second clips work best.</span><input id="heroVid" type="file" accept="video/mp4,video/webm"></label>
-      ${vidUrl(SITEIMG.homevid)?`<button type="button" class="btn btn-ghost btn-sm" data-herovidrm>Remove video</button>`:""}<p class="meta" style="margin:6px 0 0">The video plays behind the hero. The image above shows while it loads and for visitors who turn off motion.</p></div>
+      ${vidUrl(SITEIMG.homevid)?`<button type="button" class="btn btn-ghost btn-sm" data-herovidrm>Remove video</button>`:""}<p class="meta" style="margin:6px 0 0">The video plays behind the hero. The image above shows while it loads and for visitors who turn off motion.</p>
+      <div class="fld" style="margin-top:12px"><label for="heroYtBg">Or play a YouTube video in the background</label><input id="heroYtBg" type="url" maxlength="300" placeholder="Paste a YouTube link, e.g. https://youtu.be/\u2026" value="${SITEIMG.homeytbg?"https://youtu.be/"+esc(SITEIMG.homeytbg):""}"></div>
+      <p class="meta" id="heroYtBgMsg" style="margin:0">Plays muted on a loop with no buttons, cropped to fill the hero. A YouTube video takes the place of an uploaded one.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-accent btn-sm" data-heroytbgsave>Save YouTube background</button>${SITEIMG.homeytbg?`<button type="button" class="btn btn-ghost btn-sm" data-heroytbgrm>Remove YouTube background</button>`:""}</div></div>
     <div class="hero-vsec"><div class="eyebrow" style="margin-bottom:6px">YouTube video button</div><p class="meta" style="margin:0 0 8px">Adds a \u201CWatch\u201D button to the hero that plays your YouTube video in a player window.</p>
       <div class="fld"><label for="heroYt">YouTube link</label><input id="heroYt" type="url" maxlength="300" placeholder="https://youtu.be/\u2026" value="${SITEIMG.homeyt?"https://youtu.be/"+esc(SITEIMG.homeyt):""}"></div>
       <div class="fld"><label for="heroYtL">Button label</label><input id="heroYtL" maxlength="40" placeholder="Watch our video" value="${esc(SITEIMG.homeytl||"")}"></div>
@@ -4103,7 +4110,7 @@ function heroEditModal(k){const h=[...$$(".page-head,.home-hero,.blog-hero,.sc-h
 
 /* re-compress header images that were uploaded before auto-optimizing existed */
 async function heroOptimizeAll(){if(!ADS.admin)return;const msg=$("#heroOptMsg"),say=t=>{if(msg)msg.textContent=t};
-  const keys=Object.keys(SITEIMG).filter(k=>!["homevid","homeyt","homeytl"].includes(k)&&typeof SITEIMG[k]==="string"&&medUrl(SITEIMG[k]));
+  const keys=Object.keys(SITEIMG).filter(k=>!["homevid","homeyt","homeytl","homeytbg"].includes(k)&&typeof SITEIMG[k]==="string"&&medUrl(SITEIMG[k]));
   if(!keys.length){say("No uploaded header images to optimize.");return}let done=0,saved=0;
   for(const k of keys){say(`Optimizing ${done+1} of ${keys.length}\u2026`);try{const r=await fetch(SITEIMG[k]);if(!r.ok)throw 0;const bl=await r.blob();if(!/^image\/(jpeg|png|webp)$/.test(bl.type)){done++;continue}
       const f=new File([bl],"header-"+k+"."+(bl.type.split("/")[1]||"jpg"),{type:bl.type}),o=await fitImg(f);
@@ -4121,6 +4128,9 @@ document.addEventListener("click",async e=>{const sv=e.target.closest("[data-her
   if(sv){const id=ytId(($("#heroYt").value||"").trim());if(!id){if(m){m.hidden=false;m.style.color="var(--bad)";m.textContent="That doesn't look like a YouTube video link."}return}SITEIMG.homeyt=id;const l=noTags($("#heroYtL").value||"").trim().slice(0,40);if(l)SITEIMG.homeytl=l;else delete SITEIMG.homeytl}
   else{delete SITEIMG.homeyt;delete SITEIMG.homeytl}
   try{await siteSave();closeModal();toast(sv?"YouTube button saved":"YouTube button removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
+document.addEventListener("click",async e=>{const sv=e.target.closest("[data-heroytbgsave]"),rm=e.target.closest("[data-heroytbgrm]");if((!sv&&!rm)||!ADS.admin)return;const m=$("#heroYtBgMsg");
+  if(sv){const id=ytId(($("#heroYtBg").value||"").trim());if(!id){if(m){m.style.color="var(--bad)";m.textContent="That doesn't look like a YouTube video link. Copy it from the Share button on YouTube."}return}SITEIMG.homeytbg=id}else delete SITEIMG.homeytbg;
+  try{await siteSave();closeModal();toast(sv?"YouTube background saved":"YouTube background removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
 document.addEventListener("click",async e=>{if(!e.target.closest("[data-herovidrm]")||!ADS.admin)return;delete SITEIMG.homevid;try{await siteSave();closeModal();toast("Video removed");if((location.hash||"#home").slice(1)==="home"){route._keep=true;route()}}catch(x){toast("Didn't save. "+((x&&x.message)||""))}});
 document.addEventListener("change",async e=>{if(e.target.id!=="heroFile"||!ADS.admin)return;const k=e.target.dataset.herok,f=e.target.files[0];if(!f)return;const m=$("#heroMsg");if(m){m.hidden=false;m.style.color="";m.textContent="Uploading\u2026"}
   const out=await medUpload([f],"Site images");if(out&&out[0])heroSet(k,out[0].url);else if(m){m.textContent="That upload didn't work. Try a different image.";m.style.color="var(--bad)"}});
@@ -4143,7 +4153,8 @@ function vHome(){
   const feat=all().filter(l=>l.cat!=="auctions").sort((a,b)=>realFirst(a,b)||(b.featured?1:0)-(a.featured?1:0)||a.posted-b.posted).slice(0,12);
   const posts=POSTS.slice(0,8);
   const qcats=[["all","All Categories"],["classifieds","Classifieds"],["auctions","Auctions"],["powersports","Powersports"],["autos","Autos"],["rv","RV / Travel"],["horses","Equine"],["homes","Real Estate"]];
-  return `<div class="home-hero-bg"><section class="home-hero ${vidUrl(SITEIMG.homevid)?"has-vid":""}">${vidUrl(SITEIMG.homevid)?`<video class="home-vid" src="${esc(vidUrl(SITEIMG.homevid))}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>`:""}<div class="home-hero-shade"></div><div class="wrap home-hero-in">
+  const ytbg=/^[A-Za-z0-9_-]{11}$/.test(SITEIMG.homeytbg||"")?SITEIMG.homeytbg:"";
+  return `<div class="home-hero-bg"><section class="home-hero ${ytbg||vidUrl(SITEIMG.homevid)?"has-vid":""}">${ytbg?`<div class="home-vid home-ytbg" aria-hidden="true"><iframe src="https://www.youtube-nocookie.com/embed/${ytbg}?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=${ytbg}&amp;controls=0&amp;playsinline=1&amp;modestbranding=1&amp;rel=0&amp;disablekb=1&amp;iv_load_policy=3&amp;fs=0" title="Background video" allow="autoplay; encrypted-media" tabindex="-1" frameborder="0" loading="eager"></iframe></div>`:vidUrl(SITEIMG.homevid)?`<video class="home-vid" src="${esc(vidUrl(SITEIMG.homevid))}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>`:""}<div class="home-hero-shade"></div><div class="wrap home-hero-in">
       <img class="home-coin" src="${(document.querySelector('meta[name=bn-coin]')||{}).content||$(".logo-img").src}" alt="The Big Nickel" width="110" height="110">
       <h1>Adventures Marketplace</h1>
       <p>Marketplace, Classifieds, Auctions, Vehicles, Power Sports, RVs, Equine &amp; Real Estate.</p>
@@ -7415,7 +7426,7 @@ const medUrl=u=>{u=String(u||"").trim();return /^(https:\/\/|\/(?!\/)|data:image
 function medClean(d){d=d||{};const items=(Array.isArray(d.items)?d.items:[]).map(x=>({id:cleanId(x.id),url:medUrl(x.url),assetId:noTags(x.assetId||"").slice(0,80),name:noTags(x.name||"image").slice(0,120),folder:noTags(x.folder||"").slice(0,40),w:numIn(x.w,0,1e5,0),h:numIn(x.h,0,1e5,0),size:numIn(x.size,0,1e9,0),type:x.type==="video"?"video":"image",at:numIn(x.at,0,9e15,Date.now()),alt:noTags(x.alt||"").slice(0,200)})).filter(x=>x.id&&x.url);
   return {items,folders:(Array.isArray(d.folders)?d.folders:[]).map(f=>noTags(f).slice(0,40)).filter(Boolean)}}
 const vidUrl=u=>{u=String(u||"").trim();return /^(https:\/\/|\/(?!\/)|blob:)[^"'()\s\\<>]+$/i.test(u)?u:""};
-function siteClean(d){const o={};if(d&&vidUrl(d.homevid))o.homevid=vidUrl(d.homevid);if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeyt||"")){o.homeyt=d.homeyt;const l=noTags(d.homeytl||"").trim().slice(0,40);if(l)o.homeytl=l}SITE_SLOTS.forEach(([k])=>{const u=medUrl(d&&d[k]);if(u)o[k]=u});Object.keys(d||{}).forEach(k=>{if(/^(social|pg-[a-z0-9-]{1,40})$/.test(k)){const u=medUrl(d[k]);if(u)o[k]=u}});return o}
+function siteClean(d){const o={};if(d&&vidUrl(d.homevid))o.homevid=vidUrl(d.homevid);if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeytbg||""))o.homeytbg=d.homeytbg;if(d&&/^[A-Za-z0-9_-]{11}$/.test(d.homeyt||"")){o.homeyt=d.homeyt;const l=noTags(d.homeytl||"").trim().slice(0,40);if(l)o.homeytl=l}SITE_SLOTS.forEach(([k])=>{const u=medUrl(d&&d[k]);if(u)o[k]=u});Object.keys(d||{}).forEach(k=>{if(/^(social|pg-[a-z0-9-]{1,40})$/.test(k)){const u=medUrl(d[k]);if(u)o[k]=u}});return o}
 function applySiteImgs(){let el=document.getElementById("siteImgCSS");if(!el){el=document.createElement("style");el.id="siteImgCSS";document.head.appendChild(el)}
   const css=[];const shade="linear-gradient(90deg,rgba(10,10,11,.45),rgba(10,10,11,.2) 55%,rgba(10,10,11,.08))";
   Object.entries(SITEIMG).forEach(([k,u])=>{if(!medUrl(u))return;const U='url("'+u+'")';
